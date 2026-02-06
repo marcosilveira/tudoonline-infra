@@ -1,0 +1,15 @@
+/**/.dockerignore
+/**/.DS_Store
+/**/.git
+/**/.github
+/**/.gitignore
+/**/.gitmodules
+/**/CONTRIBUTING.md
+/**/README.md
+/**/readme.md
+/**/Dockerfile
+/**/Dockerfile.archive
+/**/docker-compose.yml
+/**/Gemfile
+/**/Gemfile.lock
+/**/Jenkinsfile

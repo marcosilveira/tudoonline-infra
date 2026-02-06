@@ -1,0 +1,2709 @@
+namespace: production
+
+rabbitmq:
+  host: "amqp://10.43.188.159:5672/production"
+  username: "admin"
+  password: "adminpassword"
+
+app:
+  enabled: false
+
+# Cronjobs
+# cronjob:
+#   enabled: true
+#   defaults:
+#     image: 967910066457.dkr.ecr.us-east-1.amazonaws.com/tudoonline-workers-production/worker
+#     podAnnotations:
+#       fluentbit.io/exclude: "true"
+#   jobs:
+#     - name: send
+#       schedule: "* * * * *"
+#       activeDeadlineSeconds: 300
+#       terminationGracePeriodSeconds: "0"
+#       concurrencyPolicy: Forbid
+#       command: ["php"]
+#       args: ["-f", "send.php"]
+#       resources:
+#         requests:
+#           cpu: 200m
+#           memory: 92Mi
+#         limits:
+#           cpu: 500m
+#           memory: 92Mi
+#       affinity:
+#         nodeAffinity:
+#           requiredDuringSchedulingIgnoredDuringExecution:
+#             nodeSelectorTerms:
+#               - matchExpressions:
+#                   - key: environment
+#                     operator: In
+#                     values:
+#                       - workers-production
+#     # - name: send-token
+#     #   schedule: "*/5 * * * *"
+#     #   activeDeadlineSeconds: 85
+#     #   terminationGracePeriodSeconds: "0"
+#     #   concurrencyPolicy: Replace
+#     #   command: ["php"]
+#     #   args: ["-f", "send-token.php"]
+#     #   resources:
+#     #     requests:
+#     #       cpu: 10m
+#     #       memory: 92Mi
+#     #     limits:
+#     #       cpu: 30m
+#     #       memory: 92Mi
+#     #   affinity:
+#     #     nodeAffinity:
+#     #       requiredDuringSchedulingIgnoredDuringExecution:
+#     #         nodeSelectorTerms:
+#     #         - matchExpressions:
+#     #           - key: environment
+#     #             operator: In
+#     #             values:
+#     #             - workers-production
+#     # - name: send-fila1
+#     #   schedule: "*/2 * * * *"
+#     #   activeDeadlineSeconds: 85
+#     #   terminationGracePeriodSeconds: "0"
+#     #   concurrencyPolicy: Replace
+#     #   command: ["php"]
+#     #   args: ["-f", "send-fila1.php"]
+#     #   resources:
+#     #     requests:
+#     #       cpu: 90m
+#     #       memory: 92Mi
+#     #     limits:
+#     #       cpu: 120m
+#     #       memory: 92Mi
+#     #   affinity:
+#     #     nodeAffinity:
+#     #       requiredDuringSchedulingIgnoredDuringExecution:
+#     #         nodeSelectorTerms:
+#     #         - matchExpressions:
+#     #           - key: environment
+#     #             operator: In
+#     #             values:
+#     #             - workers-production
+#     # - name: send-fila2
+#     #   schedule: "*/3 * * * *"
+#     #   activeDeadlineSeconds: 85
+#     #   terminationGracePeriodSeconds: "0"
+#     #   concurrencyPolicy: Replace
+#     #   command: ["php"]
+#     #   args: ["-f", "send-fila2.php"]
+#     #   resources:
+#     #     requests:
+#     #       cpu: 90m
+#     #       memory: 92Mi
+#     #     limits:
+#     #       cpu: 120m
+#     #       memory: 92Mi
+#     #   affinity:
+#     #     nodeAffinity:
+#     #       requiredDuringSchedulingIgnoredDuringExecution:
+#     #         nodeSelectorTerms:
+#     #         - matchExpressions:
+#     #           - key: environment
+#     #             operator: In
+#     #             values:
+#     #             - workers-production
+#     # - name: send-fila3
+#     #   schedule: "*/4 * * * *"
+#     #   activeDeadlineSeconds: 85
+#     #   terminationGracePeriodSeconds: "0"
+#     #   concurrencyPolicy: Replace
+#     #   command: ["php"]
+#     #   args: ["-f", "send-fila3.php"]
+#     #   resources:
+#     #     requests:
+#     #       cpu: 90m
+#     #       memory: 92Mi
+#     #     limits:
+#     #       cpu: 120m
+#     #       memory: 92Mi
+#     #   affinity:
+#     #     nodeAffinity:
+#     #       requiredDuringSchedulingIgnoredDuringExecution:
+#     #         nodeSelectorTerms:
+#     #           - matchExpressions:
+#     #               - key: environment
+#     #                 operator: In
+#     #                 values:
+#     #                   - workers-production
+
+## Workers
+worker:
+  enabled: true
+  defaults:
+    namePrefix: "tudoonline-worker-"
+    image: ghcr.io/marcosilveira/tudoonline-workers:latest
+    imagePullSecrets:
+      - name: ghcr-secret
+    updateStrategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 0
+        maxUnavailable: 100%
+    dnsConfig:
+      options:
+        - name: ndots
+          value: "1"
+    #initContainers:
+    #  - name: check-dns
+    #    image: busybox
+    #    command:
+    #      [
+    #        "sh",
+    #        "-c",
+    #        "until nslookup kubernetes.default.svc.cluster.local; do sleep 1; done;",
+    #      ]
+    #    resources:
+    #      limits:
+    #        cpu: 10m
+    #        memory: 16Mi
+    #      requests:
+    #        cpu: 10m
+    #        memory: 16Mi
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: environment
+                  operator: In
+                  values:
+                    - workers-production
+    schedulerName: bin-packing-scheduler
+    enableNetworkPolicy: false
+    podAnnotations:
+      fluentbit.io/exclude: "true"
+  workers:
+    - name: att-preco-estoque-bling-v3
+      command: ["php"]
+      args: ["-f", "att-preco-estoque-bling-v3.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 60m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "att-preco-estoque-bling-v3"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: att-token-bling-v3
+      command: ["php"]
+      args: ["-f", "att-token-bling-v3.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 60m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "att-token-bling-v3"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: att-token-magalu
+      command: ["php"]
+      args: ["-f", "att-token-magalu.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 60m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 2
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "att-token-magalu"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: controle-estoque
+      command: ["php"]
+      args: ["-f", "controle-estoque.php"]
+      resources:
+        requests:
+          cpu: 60m
+          memory: 64Mi
+        limits:
+          cpu: 130m
+          memory: 128Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 2
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "controle-estoque"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: att-img
+      command: ["php"]
+      args: ["-f", "att-img.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 192Mi
+        limits:
+          cpu: 30m
+          memory: 256Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "att-img"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-orders-b2w-all
+      command: ["php"]
+      args: ["-f", "get-orders-b2w-all.php"]
+      resources:
+        requests:
+          cpu: 80m
+          memory: 48Mi
+        limits:
+          cpu: 120m
+          memory: 64Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 3
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-orders-b2w-all"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-order-skyhub
+      command: ["php"]
+      args: ["-f", "get-order-skyhub.php"]
+      resources:
+        requests:
+          cpu: 20m
+          memory: 32Mi
+        limits:
+          cpu: 40m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-order-skyhub"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-order-status-b2w
+      command: ["php"]
+      args: ["-f", "get-order-status-b2w.php"]
+      resources:
+        requests:
+          cpu: 60m
+          memory: 128Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 2
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-order-status-b2w"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: att-preco-estoque-b2w
+      command: ["php"]
+      args: ["-f", "att-preco-estoque-b2w.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          cpu: 30m
+          memory: 64Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 2
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "att-preco-estoque-b2w"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-etiquetas-b2w
+      command: ["php"]
+      args: ["-f", "get-etiquetas-b2w.php"]
+      resources:
+        requests:
+          cpu: 60m
+          memory: 128Mi
+        limits:
+          cpu: 380m
+          memory: 256Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-etiquetas-b2w"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-prod-b2w-fila
+      command: ["php"]
+      args: ["-f", "get-prod-b2w-fila.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 30m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-prod-b2w-fila"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-prod-b2w
+      command: ["php"]
+      args: ["-f", "get-prod-b2w.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 40m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-prod-b2w"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: att-token-shopee
+      command: ["php"]
+      args: ["-f", "att-token-shopee.php"]
+      resources:
+        requests:
+          cpu: 20m
+          memory: 48Mi
+        limits:
+          cpu: 40m
+          memory: 64Mi
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      replicaCount: 0
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 6
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "att-token-shopee"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: insert-fila-preco
+      command: ["php"]
+      args: ["-f", "insert-fila-preco.php"]
+      resources:
+        requests:
+          cpu: 20m
+          memory: 48Mi
+        limits:
+          cpu: 40m
+          memory: 64Mi
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      replicaCount: 0
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 300
+        minReplicaCount: 0
+        maxReplicaCount: 2
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "5"
+              vhostName: "production"
+              queueName: "insert-fila-preco"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: att-token-meli
+      command: ["php"]
+      args: ["-f", "att-token-meli.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 30m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 2
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "att-token-meli"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-gambi-shopee
+      command: ["php"]
+      args: ["-f", "get-gambi-shopee.php"]
+      resources:
+        requests:
+          cpu: 60m
+          memory: 128Mi
+        limits:
+          cpu: 230m
+          memory: 128Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 120
+        minReplicaCount: 0
+        maxReplicaCount: 4
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "10"
+              vhostName: "production"
+              queueName: "get-gambi-shopee"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-orders-shopify
+      command: ["php"]
+      args: ["-f", "get-orders-shopify.php"]
+      resources:
+        requests:
+          cpu: 140m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 15
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-orders-shopify"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-pedidos-shopee-v2
+      command: ["php"]
+      args: ["-f", "get-pedidos-shopee-v2.php"]
+      resources:
+        requests:
+          cpu: 20m
+          memory: 32Mi
+        limits:
+          cpu: 40m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 2
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-pedidos-shopee-v2"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-pedidos-shopee-v2-all
+      command: ["php"]
+      args: ["-f", "get-pedidos-shopee-v2-all.php"]
+      resources:
+        requests:
+          cpu: 20m
+          memory: 32Mi
+        limits:
+          cpu: 60m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 4
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-pedidos-shopee-v2-all"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-etiquetas-shopee
+      command: ["php"]
+      args: ["-f", "get-etiquetas-shopee.php"]
+      resources:
+        requests:
+          cpu: 40m
+          memory: 92Mi
+        limits:
+          cpu: 80m
+          memory: 128Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 120
+        minReplicaCount: 0
+        maxReplicaCount: 4
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "5"
+              vhostName: "production"
+              queueName: "get-etiquetas-shopee"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: att-preco-estoque-shopee
+      command: ["php"]
+      args: ["-f", "att-preco-estoque-shopee.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 30m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 6
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "att-preco-estoque-shopee"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-prod-shopee
+      command: ["php"]
+      args: ["-f", "get-prod-shopee.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 30m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-prod-shopee"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: att-preco-estoque-meli
+      command: ["php"]
+      args: ["-f", "att-preco-estoque-meli.php"]
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          cpu: 180m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 16
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "att-preco-estoque-meli"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-etiquetas-meli
+      command: ["php"]
+      args: ["-f", "get-etiquetas-meli.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          cpu: 30m
+          memory: 92Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-etiquetas-meli"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-etiquetas-meli-coleta
+      command: ["php"]
+      args: ["-f", "get-etiquetas-meli-coleta.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 30m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-etiquetas-meli-coleta"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-order-meli
+      command: ["php"]
+      args: ["-f", "get-order-meli.php"]
+      resources:
+        requests:
+          cpu: 40m
+          memory: 32Mi
+        limits:
+          cpu: 180m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 2
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-order-meli"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-prod-meli-item
+      command: ["php"]
+      args: ["-f", "get-prod-meli-item.php"]
+      resources:
+        requests:
+          cpu: 60m
+          memory: 48Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-prod-meli-item"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-prod-meli-item-import
+      command: ["php"]
+      args: ["-f", "get-prod-meli-item-import.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 30m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-prod-meli-item-import"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-prod-meli
+      command: ["php"]
+      args: ["-f", "get-prod-meli.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 30m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-prod-meli"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-status-meli-order
+      command: ["php"]
+      args: ["-f", "get-status-meli-order.php"]
+      resources:
+        requests:
+          cpu: 140m
+          memory: 48Mi
+        limits:
+          cpu: 200m
+          memory: 64Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-status-meli-order"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: att-preco-estoque-magalu
+      command: ["php"]
+      args: ["-f", "att-preco-estoque-magalu.php"]
+      resources:
+        requests:
+          cpu: 30m
+          memory: 32Mi
+        limits:
+          cpu: 60m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 2
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "att-preco-estoque-magalu"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-prod-magalu
+      command: ["php"]
+      args: ["-f", "get-prod-magalu.php"]
+      resources:
+        requests:
+          cpu: 100m
+          memory: 48Mi
+        limits:
+          cpu: 200m
+          memory: 64Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-prod-magalu"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-prod-magalu-fila
+      command: ["php"]
+      args: ["-f", "get-prod-magalu-fila.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 30m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-prod-magalu-fila"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-pedidos-magalu
+      command: ["php"]
+      args: ["-f", "get-pedidos-magalu.php"]
+      resources:
+        requests:
+          cpu: 40m
+          memory: 64Mi
+        limits:
+          cpu: 120m
+          memory: 64Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-pedidos-magalu"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-orders-magalu-all
+      command: ["php"]
+      args: ["-f", "get-orders-magalu-all.php"]
+      resources:
+        requests:
+          cpu: 30m
+          memory: 92Mi
+        limits:
+          cpu: 80m
+          memory: 128Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 4
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "5"
+              vhostName: "production"
+              queueName: "get-orders-magalu-all"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-etiquetas-magalu
+      command: ["php"]
+      args: ["-f", "get-etiquetas-magalu.php"]
+      resources:
+        requests:
+          cpu: 40m
+          memory: 48Mi
+        limits:
+          cpu: 80m
+          memory: 64Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-etiquetas-magalu"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: att-preco-estoque-via
+      command: ["php"]
+      args: ["-f", "att-preco-estoque-via.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 30m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 2
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "att-preco-estoque-via"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-performance-shopee
+      command: ["php"]
+      args: ["-f", "get-performance-shopee.php"]
+      resources:
+        requests:
+          cpu: 30m
+          memory: 32Mi
+        limits:
+          cpu: 60m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 3
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-performance-shopee"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: cad-prod-shopee-ia
+      command: ["php"]
+      args: ["-f", "cad-prod-shopee-ia.php"]
+      resources:
+        requests:
+          cpu: 30m
+          memory: 32Mi
+        limits:
+          cpu: 60m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 4
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "cad-prod-shopee-ia"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: cad-prod-meli-ia
+      command: ["php"]
+      args: ["-f", "cad-prod-meli-ia.php"]
+      resources:
+        requests:
+          cpu: 30m
+          memory: 32Mi
+        limits:
+          cpu: 60m
+          memory: 128Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 2
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "cad-prod-meli-ia"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: remove-anuncio-shopee
+      command: ["php"]
+      args: ["-f", "remove-anuncio-shopee.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 30m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "remove-anuncio-shopee"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: remove-anuncio-meli
+      command: ["php"]
+      args: ["-f", "remove-anuncio-meli.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 30m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "remove-anuncio-meli"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: remove-produto-excluido
+      command: ["php"]
+      args: ["-f", "remove-produto-excluido.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 30m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "remove-produto-excluido"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: executa-cron
+      command: ["php"]
+      args: ["-f", "executa-cron.php"]
+      resources:
+        requests:
+          cpu: 30m
+          memory: 64Mi
+        limits:
+          cpu: 60m
+          memory: 64Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 2
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "5"
+              vhostName: "production"
+              queueName: "executa-cron"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: whatsapp-notifications
+      command: ["php"]
+      args: ["-f", "whatsapp-notifications.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 30m
+          memory: 64Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 2
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "5"
+              vhostName: "production"
+              queueName: "whatsapp-notifications"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: video-busca
+      command: ["php"]
+      args: ["-f", "video-busca.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 30m
+          memory: 64Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 2
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "5"
+              vhostName: "production"
+              queueName: "video-busca"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: att-preco-frete
+      command: ["php"]
+      args: ["-f", "att-preco-frete.php"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 130m
+          memory: 64Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "5"
+              vhostName: "production"
+              queueName: "att-preco-frete"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: cad-prod-b2w-ia
+      command: ["php"]
+      args: ["-f", "cad-prod-b2w-ia.php"]
+      resources:
+        requests:
+          cpu: 30m
+          memory: 32Mi
+        limits:
+          cpu: 60m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 2
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "cad-prod-b2w-ia"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: cad-video-shopee
+      command: ["php"]
+      args: ["-f", "cad-video-shopee.php"]
+      resources:
+        requests:
+          cpu: 30m
+          memory: 32Mi
+        limits:
+          cpu: 60m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 6
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "5"
+              vhostName: "production"
+              queueName: "cad-video-shopee"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: get-etiquetas-bling
+      command: ["php"]
+      args: ["-f", "get-etiquetas-bling.php"]
+      resources:
+        requests:
+          cpu: 30m
+          memory: 32Mi
+        limits:
+          cpu: 60m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "get-etiquetas-bling"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: cad-prod-bling-ia
+      command: ["php"]
+      args: ["-f", "cad-prod-bling-ia.php"]
+      resources:
+        requests:
+          cpu: 30m
+          memory: 32Mi
+        limits:
+          cpu: 60m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "cad-prod-bling-ia"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: att-preco-estoque-shopify
+      command: ["php"]
+      args: ["-f", "att-preco-estoque-shopify.php"]
+      resources:
+        requests:
+          cpu: 30m
+          memory: 32Mi
+        limits:
+          cpu: 60m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 2
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "att-preco-estoque-shopify"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: cad-prod-magalu-ia
+      command: ["php"]
+      args: ["-f", "cad-prod-magalu-ia.php"]
+      resources:
+        requests:
+          cpu: 30m
+          memory: 32Mi
+        limits:
+          cpu: 60m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "cad-prod-magalu-ia"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: check-status-pending-meli
+      command: ["php"]
+      args: ["-f", "check-status-pending-meli.php"]
+      resources:
+        requests:
+          cpu: 30m
+          memory: 32Mi
+        limits:
+          cpu: 60m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 2
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "check-status-pending-meli"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+    - name: api-stock-price-fila
+      command: ["php"]
+      args: ["-f", "api-stock-price-fila.php"]
+      resources:
+        requests:
+          cpu: 30m
+          memory: 32Mi
+        limits:
+          cpu: 60m
+          memory: 48Mi
+      replicaCount: 0
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      keda:
+        pollingInterval: 15
+        cooldownPeriod: 60
+        minReplicaCount: 0
+        maxReplicaCount: 1
+        behavior:
+          scaleDown:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 20
+                periodSeconds: 15
+        triggers:
+          - type: rabbitmq
+            metadata:
+              mode: QueueLength
+              value: "50"
+              vhostName: "production"
+              queueName: "api-stock-price-fila"
+            authenticationRef:
+              name: tudoonline-workers-rabbitmq
+
+
+    # - name: fila-ack
+    #   command: ["php"]
+    #   args: ["-f", "fila-ack.php"]
+    #   resources:
+    #     requests:
+    #       cpu: 10m
+    #       memory: 128Mi
+    #     limits:
+    #       cpu: 30m
+    #       memory: 256Mi
+    #   replicaCount: 1
+    #   persistence:
+    #     - name: imagens
+    #       existingClaim: tudoonline-app-imagens
+    #       mountPath: /app/imagens/
+    #     - name: etiquetas
+    #       existingClaim: tudoonline-app-etiquetas
+    #       mountPath: /app/etiquetas/
+
+configs:
+  worker:
+    php:
+      ini: |-
+        date.timezone=America/Sao_Paulo
+        memory_limit=-1
+        upload_max_filesize=10M
+        post_max_size=10M
+        max_execution_time=300
+        expose_php=Off
+        display_errors=Off
+        disable_functions='phpinfo, show_source, shell_exec, system, passthru, popen'
+        opcache.blacklist_filename=/etc/php.d/opcache*.blacklist
+        opcache.enable=1
+        opcache.interned_strings_buffer=16
+        opcache.max_accelerated_files=50000
+        opcache.memory_consumption=128
+        opcache.revalidate_freq=64
+        opcache.validate_timestamps=1
+        newrelic.enabled=false
+        newrelic.appname="tudoonline-workers-production"
+        newrelic.daemon.address="newrelic-php-daemon.monitoring.svc.cluster.local:31339"
+        newrelic.license="671fdbd3670a752156d7ecaea6ff1f36FFFFNRAL"
+keda:
+  secrets:
+    host: "aHR0cDovL3R1ZG9vbmxpbmVfcHJvZHVjdGlvbjoyS2xoWE5kYUZFSFJjR05hMzloOElTeGJZSkhjNENjNkByYWJiaXRtcS5wcm9kdWN0aW9uLnN2Yy5jbHVzdGVyLmxvY2FsOjE1NjcyL3Zob3N0"
+  triggerAuthentications:
+    - name: rabbitmq
+      secretTargetRef:
+        - parameter: host
+          name: tudoonline-workers-keda-secrets
+          key: host

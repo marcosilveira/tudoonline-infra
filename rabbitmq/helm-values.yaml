@@ -1,0 +1,123 @@
+image:
+  registry: docker.io
+  repository: bitnami/rabbitmq
+  tag: 3.11.9-debian-11-r1
+auth:
+  username: admin
+  password: 3dsiiOa8Smk1nZJedeDEaNhpDjyL22e2
+  securePassword: false
+  erlangCookie: 5v936fnuCjoaJxDk1ns0LhXDPlPF7phV
+replicaCount: 3
+resources:
+  requests:
+    cpu: 1400m
+    memory: 2800Mi
+  limits:
+    cpu: 2000m
+    memory: 2800Mi
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: "environment"
+              operator: In
+              values: ["backend-production"]
+tolerations:
+  - key: backend-production
+    operator: Exists
+    effect: NoSchedule
+
+persistence:
+  storageClass: "gp3"
+  size: 10Gi
+
+pdb:
+  create: true
+  minAvailable: 2
+
+readinessProbe:
+  enabled: false
+
+customReadinessProbe:
+  exec:
+    command:
+      - /bin/bash
+      - -ec
+      - rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q alarms
+  failureThreshold: 3
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  successThreshold: 1
+  timeoutSeconds: 20
+
+ingress:
+  enabled: true
+  ingressClassName: "nginx-infra"
+  hostname: rabbitmq.sistemagrupoonline.com.br
+  hosts:
+    - rabbitmq.sistemagrupoonline.com.br
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/whitelist-source-range: "189.7.9.152/32, 34.232.119.242/32, 23.21.52.8/32"
+  tls: true
+  certManager: true
+
+extraSecretsPrependReleaseName: true
+extraSecrets:
+  load-definition:
+    load_definition.json: |
+      {
+        "policies": [
+          {
+            "name": "ha-all",
+            "pattern": ".*",
+            "vhost": "/",
+            "apply-to": "all",
+            "definition": {
+              "ha-mode": "all",
+              "ha-sync-batch-size": 81920,
+              "ha-sync-mode": "automatic"
+            }
+          },
+          {
+            "name": "ha-all",
+            "pattern": ".*",
+            "vhost": "production",
+            "apply-to": "all",
+            "definition": {
+              "ha-mode": "all",
+              "ha-sync-batch-size": 81920,
+              "ha-sync-mode": "automatic"
+            }
+          },
+          {
+            "name": "ha-all",
+            "pattern": ".*",
+            "vhost": "staging",
+            "apply-to": "all",
+            "definition": {
+              "ha-mode": "all",
+              "ha-sync-batch-size": 81920,
+              "ha-sync-mode": "automatic"
+            }
+          }
+        ]
+      }
+
+loadDefinition:
+  enabled: true
+  existingSecret: rabbitmq-load-definition
+
+extraConfiguration: |-
+  load_definitions = /app/load_definition.json
+  log.default.level = error
+  log.file.level = error
+  log.console.level = error
+
+memoryHighWatermark:
+  enabled: true
+  type: "relative"
+  value: 0.5

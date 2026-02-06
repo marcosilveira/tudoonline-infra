@@ -1,0 +1,61 @@
+# PersistentVolume NFS para imagens
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: tudoonline-app-imagens-pv
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs
+  nfs:
+    server: 217.216.82.83
+    path: /mnt/nfs/imagens
+---
+# PersistentVolume NFS para etiquetas
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: tudoonline-app-etiquetas-pv
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs
+  nfs:
+    server: 217.216.82.83
+    path: /mnt/nfs/etiquetas
+---
+# PersistentVolumeClaim para imagens
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tudoonline-app-imagens
+  namespace: production
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: nfs
+---
+# PersistentVolumeClaim para etiquetas
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tudoonline-app-etiquetas
+  namespace: production
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: nfs

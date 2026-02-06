@@ -1,0 +1,100 @@
+{{- if .Values.worker.enabled }}
+{{- range .Values.worker.workers }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $.Values.worker.defaults.namePrefix }}{{ .name }}
+  namespace: {{ $.Values.namespace }}
+  labels:
+    app: {{ $.Values.worker.defaults.namePrefix }}{{ .name }}
+spec:
+  replicas: {{ .replicaCount | default 0 }}
+  selector:
+    matchLabels:
+      app: {{ $.Values.worker.defaults.namePrefix }}{{ .name }}
+  strategy:
+    {{- toYaml $.Values.worker.defaults.updateStrategy | nindent 4 }}
+  template:
+    metadata:
+      labels:
+        app: {{ $.Values.worker.defaults.namePrefix }}{{ .name }}
+      {{- with $.Values.worker.defaults.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ $.Values.worker.defaults.serviceAccountName | default "default" }}
+      {{- with $.Values.worker.defaults.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.worker.defaults.dnsConfig }}
+      dnsConfig:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .affinity | default $.Values.worker.defaults.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.worker.defaults.schedulerName }}
+      schedulerName: {{ . }}
+      {{- end }}
+      containers:
+      - name: worker
+        image: {{ $.Values.worker.defaults.image }}
+        imagePullPolicy: Always
+        command: {{ .command | toJson }}
+        args: {{ .args | toJson }}
+        {{- with .resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- if .persistence }}
+        volumeMounts:
+        {{- range .persistence }}
+        - name: {{ .name }}
+          mountPath: {{ .mountPath }}
+        {{- end }}
+        {{- end }}
+      {{- if .persistence }}
+      volumes:
+      {{- range .persistence }}
+      - name: {{ .name }}
+        persistentVolumeClaim:
+          claimName: {{ .existingClaim }}
+      {{- end }}
+      {{- end }}
+{{- if .keda }}
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ $.Values.worker.defaults.namePrefix }}{{ .name }}
+  namespace: {{ $.Values.namespace }}
+spec:
+  scaleTargetRef:
+    name: {{ $.Values.worker.defaults.namePrefix }}{{ .name }}
+  pollingInterval: {{ .keda.pollingInterval }}
+  cooldownPeriod: {{ .keda.cooldownPeriod }}
+  minReplicaCount: {{ .keda.minReplicaCount }}
+  maxReplicaCount: {{ .keda.maxReplicaCount }}
+  {{- with .keda.behavior }}
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        {{- toYaml . | nindent 8 }}
+  {{- end }}
+  triggers:
+  {{- range .keda.triggers }}
+  - type: {{ .type }}
+    metadata:
+      {{- toYaml .metadata | nindent 6 }}
+    {{- with .authenticationRef }}
+    authenticationRef:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

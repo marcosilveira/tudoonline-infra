@@ -1,0 +1,281 @@
+ingress:
+  enabled: true
+  ingressClassName: nginx-infra
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/enable-access-log: "true"
+    nginx.ingress.kubernetes.io/client-body-buffer-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+  tls:
+    secretName: app-sistemagrupoonline-com-br-tls
+  hosts:
+    - sistemagrupoonline.com.br
+    - www.sistemagrupoonline.com.br
+    - etiquetas.sistemagrupoonline.com.br
+    - fullhubmarket.com.br
+    - www.fullhubmarket.com.br
+    - etiquetas.fullhubmarket.com.br
+    - hubmarket.io
+    - www.hubmarket.io
+    - etiquetas.hubmarket.io
+    - goolhub.io
+    - www.goolhub.io
+    - etiquetas.goolhub.io
+    - alexsdesig.com
+    - www.alexsdesig.com
+    - etiquetas.alexsdesig.com
+    - mundohub.io
+    - www.mundohub.io
+    - etiquetas.mundohub.io
+
+serviceAccount:
+  create: true
+
+############### SERVICES ###############
+app:
+  nginx:
+    image: ghcr.io/marcosilveira/tudoonline-app-nginx
+    resources:
+      requests:
+        cpu: 20m
+        memory: 32Mi
+      limits:
+        cpu: 40m
+        memory: 48Mi
+    lifecycle:
+      preStop:
+        exec:
+          command: ["sh", "-c", "sleep 30 && /usr/sbin/nginx -s quit"]
+  php:
+    image: ghcr.io/marcosilveira/tudoonline-app-php
+    resources:
+      requests:
+        cpu: 400m
+        memory: 768Mi
+      limits:
+        cpu: 1000m
+        memory: 768Mi
+    lifecycle:
+      preStop:
+        exec:
+          command: ["sh", "-c", "sleep 15 && kill -SIGQUIT 1"]
+    metrics:
+      enabled: true
+      image: hipages/php-fpm_exporter
+      imageTag: "2.2.0"
+      resources:
+        requests:
+          cpu: 20m
+          memory: 32Mi
+        limits:
+          cpu: 20m
+          memory: 32Mi
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 0
+  autoscaling:
+    minReplicas: 4
+    maxReplicas: 12
+    targetCPUUtilizationPercentage: 80
+  podDisruptionBudget:
+    enabled: true
+    maxUnavailable: 10%
+  dnsConfig:
+    options:
+      - name: ndots
+        value: "1"
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: environment
+                operator: In
+                values:
+                  - apps-production
+
+# Crons
+# cron:
+#   enabled: true
+#   defaults:
+#     image: 967910066457.dkr.ecr.us-east-1.amazonaws.com/tudoonline-app-production/php
+#     terminationGracePeriodSeconds: 60
+#     dnsConfig:
+#       options:
+#         - name: ndots
+#           value: "1"
+#     affinity:
+#       nodeAffinity:
+#         requiredDuringSchedulingIgnoredDuringExecution:
+#           nodeSelectorTerms:
+#             - matchExpressions:
+#                 - key: environment
+#                   operator: In
+#                   values:
+#                     - apps-production
+#   jobs:
+#     - name: default
+#       crontab: |
+#         0 * * * * * * php -f cron.php
+#       resources:
+#         requests:
+#           cpu: 40m
+#           memory: 128Mi
+#         limits:
+#           cpu: 100m
+#           memory: 128Mi
+#       updateStrategy:
+#         type: RollingUpdate
+#         rollingUpdate:
+#           maxSurge: 100% 
+#           maxUnavailable: 0%
+
+## Persistence
+persistence:
+  - name: imagens
+    accessMode: ReadWriteMany
+    size: 1Gi
+    storageClassName: efs-infra
+    mountPath: /app/imagens/
+  - name: etiquetas
+    accessMode: ReadWriteMany
+    size: 1Gi
+    storageClassName: efs-infra
+    mountPath: /app/etiquetas/
+
+# Configs
+configs:
+  app:
+    nginx:
+      main: |-
+        worker_processes auto;
+        pcre_jit on;
+        error_log /var/log/nginx/error.log;
+        pid /tmp/nginx.pid;
+        events {
+          worker_connections 1024;
+          use epoll;
+          multi_accept on;
+        }
+        http {
+          include /etc/nginx/mime.types;
+          default_type application/octet-stream;
+          real_ip_header X-Forwarded-For;
+          set_real_ip_from 0.0.0.0/0;
+          limit_req_zone $binary_remote_addr zone=default:100m rate=15r/s;
+          limit_req_status 444;
+          log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+            '$status $body_bytes_sent "$http_referer" '
+            '"$http_user_agent" -- "$request_time $upstream_response_time $pipe"';
+          access_log /var/log/nginx/access.log main;
+          server_tokens off;
+          sendfile on;
+          autoindex off;
+          port_in_redirect off;
+          tcp_nopush on;
+          tcp_nodelay on;
+          keepalive_timeout  65;
+          client_max_body_size 100m;
+          client_body_buffer_size 128k;
+          types_hash_max_size 2048;
+          server_names_hash_bucket_size 64;
+          ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+          ssl_ciphers "EECDH+ECDSA+AESGCM EECDH+aRSA+AESGCM EECDH+ECDSA+SHA384 EECDH+ECDSA+SHA256 EECDH+aRSA+SHA384 EECDH+aRSA+SHA256 EECDH+aRSA+RC4 EECDH EDH+aRSA DES-CBC3-SHA !RC4 !aNULL !eNULL !LOW !MD5 !EXP !PSK !SRP !DSS !CAMELLIA !SEED";
+          ssl_prefer_server_ciphers on;
+          ssl_session_timeout 5m;
+          ssl_session_tickets on;
+          ssl_session_cache shared:SSL:50m;
+          ssl_stapling on;
+          client_body_temp_path /tmp/client_temp;
+          proxy_temp_path /tmp/proxy_temp_path;
+          fastcgi_temp_path /tmp/fastcgi_temp;
+          uwsgi_temp_path /tmp/uwsgi_temp;
+          scgi_temp_path /tmp/scgi_temp;
+          map $scheme $fastcgi_https {
+            default off;
+            https on;
+          }
+          gzip on;
+          gzip_static on;
+          gzip_disable "msie6";
+          gzip_comp_level 6;
+          gzip_min_length 1100;
+          gzip_http_version 1.1;
+          gzip_proxied any;
+          gzip_vary on;
+          gzip_buffers 16 8k;
+          gzip_types image/png image/gif image/jpeg image/svg+xml image/x-icon text/plain text/css text/xml text/javascript text/js text/x-component application/json application/x-javascript application/xml application/xml+rss application/javascript application/xhtml+xml application/vnd.ms-fontobject font/truetype font/opentype;
+          include /etc/nginx/conf.d/*.conf;
+        }
+      blockserver: |-
+        server {
+          listen 8080;
+          server_name default;
+          root /app/;
+          error_log /var/log/nginx/error.log error;
+          access_log off;
+          location / {
+            index index.html index.php;
+            try_files $uri $uri/ /index.php?$uri&$args;
+          }
+          location ~ \.php$ {
+            try_files $uri =404;
+            fastcgi_split_path_info ^(.+\.php)(/.*)$;
+            fastcgi_pass   unix:/var/run/php-fpm/php-fpm.sock;
+            fastcgi_read_timeout 120; 
+            fastcgi_param  HTTPS $fastcgi_https;
+            fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+            include        fastcgi_params;
+          }
+        }
+    php:
+      ini: |-
+        date.timezone=America/Sao_Paulo
+        memory_limit=-1
+        upload_max_filesize=20M
+        post_max_size=20M
+        max_execution_time=300
+        expose_php=Off
+        display_errors=Off
+        disable_functions='phpinfo, show_source, shell_exec, system, passthru, popen'
+        error_reporting='E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_NOTICE'
+        session.save_handler=redis
+        session.save_path='tcp://tudoonline-production.gwewco.ng.0001.use1.cache.amazonaws.com:6379'
+        session.gc_maxlifetime=86400
+        opcache.blacklist_filename=/etc/php.d/opcache*.blacklist
+        opcache.enable=1
+        opcache.interned_strings_buffer=16
+        opcache.max_accelerated_files=50000
+        opcache.memory_consumption=256
+        opcache.revalidate_freq=64
+        opcache.validate_timestamps=0
+        newrelic.enabled=true
+        newrelic.appname="tudoonline-app-production"
+        newrelic.daemon.address="newrelic-php-daemon.monitoring.svc.cluster.local:31339"
+        newrelic.license="671fdbd3670a752156d7ecaea6ff1f36FFFFNRAL"
+      fpm: |-
+        [global]
+        daemonize=no
+        log_level=warning
+        process_control_timeout=15
+        [www]
+        listen=/var/run/php-fpm/php-fpm.sock
+        pm=static
+        pm.max_children=30
+        pm.max_requests=500
+        env[AWS_ROLE_ARN]="$AWS_ROLE_ARN"
+        env[AWS_WEB_IDENTITY_TOKEN_FILE]="$AWS_WEB_IDENTITY_TOKEN_FILE"
+        catch_workers_output=yes
+        decorate_workers_output=no
+        pm.status_path=/status
+  cron:
+    php:
+      ini: |-
+        date.timezone=America/Sao_Paulo
+        memory_limit=-1
+        max_execution_time=300
+        disable_functions='show_source, system, passthru, popen'

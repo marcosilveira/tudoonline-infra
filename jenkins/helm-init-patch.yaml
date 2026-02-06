@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins
+  namespace: jenkins
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: install-helm
+        image: alpine:3.18
+        command:
+        - sh
+        - -c
+        - |
+          apk add --no-cache curl bash openssl
+          export VERIFY_CHECKSUM=false
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          cp /usr/local/bin/helm /helm-bin/helm
+          chmod +x /helm-bin/helm
+        volumeMounts:
+        - name: helm-bin
+          mountPath: /helm-bin
+      containers:
+      - name: jenkins
+        volumeMounts:
+        - mountPath: /var/jenkins_home
+          name: jenkins-home
+        - name: helm-bin
+          mountPath: /usr/local/bin/helm
+          subPath: helm
+      volumes:
+      - name: jenkins-home
+        persistentVolumeClaim:
+          claimName: jenkins-pvc
+      - emptyDir: {}
+        name: docker-storage
+      - name: helm-bin
+        emptyDir: {}

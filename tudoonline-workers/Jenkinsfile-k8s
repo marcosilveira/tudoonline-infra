@@ -1,0 +1,113 @@
+#!/usr/bin/env groovy
+pipeline {
+  environment { 
+    DOCKER_REGISTRY = 'ghcr.io'
+    GITHUB_ORG = 'marcosilveira'
+    APP_NAME = 'tudoonline-workers'
+    NAMESPACE = 'production'
+    GITHUB_CREDENTIAL_ID = '7695161b-5a4b-49a9-a5a9-86c1b6f2bf1c'
+    HELM_CHART_PATH = "./deploy/k8s"
+    HELM_TIMEOUT = '600s'
+  } 
+
+  options { 
+    timeout(time: 30, unit: 'MINUTES') 
+  } 
+
+  agent any
+
+  stages {
+    stage('Checkout') {
+      steps {
+        script {
+          def branch = scm.branches[0].name
+          echo "Branch detectada: ${branch}"
+          
+          if (branch.contains('master')) {
+            env.NAMESPACE = 'production'
+            env.IMAGE_TAG = "${BUILD_NUMBER}"
+          } else {
+            error("Branch ${branch} não suportada. Use master.")
+          }
+          
+          echo "Deploying to ${env.NAMESPACE} with tag ${env.IMAGE_TAG}"
+          
+          dir('app') {
+            checkout scm
+          }
+        }
+      }
+    }
+
+    stage('Login to GitHub Container Registry') {
+      steps {
+        script {
+          withCredentials([usernamePassword(credentialsId: "${GITHUB_CREDENTIAL_ID}", usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
+            sh """
+              echo \$GITHUB_TOKEN | docker login ${DOCKER_REGISTRY} -u \$GITHUB_USER --password-stdin
+            """
+          }
+        }
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        script {
+          sh """
+            docker build --network host -t ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${IMAGE_TAG} -f deploy/docker/worker/Dockerfile .
+            docker tag ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${IMAGE_TAG} ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:latest
+          """
+        }
+      }
+    }
+
+    stage('Push Images') {
+      steps {
+        script {
+          sh """
+            docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${IMAGE_TAG}
+            docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:latest
+          """
+        }
+      }
+    }
+
+    stage('Deploy to Kubernetes') {
+      steps {
+        script {
+          sh """
+            # Update image tag in values file
+            sed -i 's|image:.*|image: ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${IMAGE_TAG}|g' ${HELM_CHART_PATH}/helm-values-production.yaml
+            
+            # Deploy with Helm
+            helm upgrade --install tudoonline-workers \
+              --namespace ${NAMESPACE} \
+              -f ${HELM_CHART_PATH}/helm-values-production.yaml \
+              ${HELM_CHART_PATH}
+          """
+        }
+      }
+    }
+  }
+  
+  post {
+    success {
+      echo "Deploy realizado com sucesso! 🚀"
+      echo "Imagem: ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${IMAGE_TAG}"
+    }
+    
+    failure {
+      echo "Deploy falhou! ❌"
+      emailext to: "marcosilveira39@gmail.com", 
+               subject: "Jenkins - ${env.JOB_NAME} - Build #${env.BUILD_NUMBER} FALHOU", 
+               body: "O job ${env.JOB_NAME} falhou. Verifique: ${env.BUILD_URL}"
+    }
+    
+    always {
+      sh """
+        docker rmi ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${IMAGE_TAG} || true
+      """
+    }
+  }
+}

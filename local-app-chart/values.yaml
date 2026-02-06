@@ -1,0 +1,10 @@
+app:
+  nginx:
+    image: nginx:latest
+    pullPolicy: IfNotPresent
+  php:
+    image: php:fpm
+    pullPolicy: IfNotPresent
+
+ingress:
+  hosts: []

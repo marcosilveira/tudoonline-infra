@@ -1,0 +1,60 @@
+#!/usr/bin/env groovy
+pipeline {
+  environment { 
+    KUBERNETES_CREDENTIAL_ID = "jenkins-production"
+    KUBERNETES_SERVER_URL = "https://kubernetes.default"
+    HELM_RELEASE_NAME = "mysql"
+    HELM_CHART_NAME = "bitnami/mysql"
+    HELM_CHART_VERSION = "9.10.0" # Versão estável do chart para MySQL 8.0
+    HELM_TIMEOUT = "600s"
+    NAMESPACE = "production"
+    SQUADCAST_URL = "jenkins@squadcast"
+  } 
+
+  options { 
+    timeout(time: 30, unit: 'MINUTES') 
+    skipDefaultCheckout()
+  } 
+
+  agent { 
+    kubernetes { 
+      inheritFrom 'jenkins-slave-helm'
+      defaultContainer 'k8s-jenkins-toolbox'
+    }
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        script {
+          checkout scm
+        }
+      }
+    }
+
+    stage('Initialize') {
+      steps {
+        sh "helm repo add bitnami https://charts.bitnami.com/bitnami"
+      }
+    }
+
+    stage('Deploy') {
+      steps {
+        withKubeConfig([credentialsId: "${KUBERNETES_CREDENTIAL_ID}", serverUrl: "${KUBERNETES_SERVER_URL}"]) {
+          sh """
+            helm upgrade --install ${HELM_RELEASE_NAME} --namespace ${NAMESPACE} -f helm-values.yaml ${HELM_CHART_NAME} --wait --timeout ${HELM_TIMEOUT} --version ${HELM_CHART_VERSION}
+          """
+        }
+      }
+    }
+  }
+  
+  post {
+    always {
+      script {
+        // squadcastNotifier() 
+        echo "Deploy finished"
+      }
+    }
+  }
+}

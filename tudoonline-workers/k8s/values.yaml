@@ -1,0 +1,28 @@
+namespace: production
+
+rabbitmq:
+  host: "rabbitmq.production.svc.cluster.local"
+  username: "admin"
+  password: "CHANGE_ME"
+
+worker:
+  enabled: true
+  defaults:
+    namePrefix: "tudoonline-worker-"
+    image: "ghcr.io/marcosilveira/tudoonline-workers:latest"
+    serviceAccountName: "default"
+    imagePullSecrets:
+      - name: ghcr-secret
+    updateStrategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 0
+        maxUnavailable: 100%
+    dnsConfig:
+      options:
+        - name: ndots
+          value: "1"
+    affinity: {}
+    schedulerName: "default-scheduler"
+    podAnnotations: {}
+  workers: []

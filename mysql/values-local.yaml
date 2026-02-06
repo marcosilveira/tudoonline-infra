@@ -1,0 +1,42 @@
+
+global:
+  security:
+    allowInsecureImages: true
+
+image:
+  registry: docker.io
+  repository: library/mysql
+  tag: "8.0"
+  pullPolicy: IfNotPresent
+  debug: true
+
+# Desabilitar init containers específicos da Bitnami que falhariam com imagem oficial
+volumePermissions:
+  enabled: false
+
+# Ajustar segurança para permitir rodar como root/mysql padrão
+containerSecurityContext:
+  enabled: false
+podSecurityContext:
+  enabled: false
+
+auth:
+  rootPassword: "root"
+  database: "tudoonline"
+  username: "tudoonline"
+  password: "localpassword"
+
+primary:
+  # Ajustar comando de entrada para imagem oficial
+  command: ["docker-entrypoint.sh"]
+  args: ["mysqld"]
+  
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+  persistence:
+    enabled: false 

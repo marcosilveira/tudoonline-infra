@@ -1,0 +1,157 @@
+#!/usr/bin/env groovy
+pipeline {
+  environment { 
+    DOCKER_REGISTRY = 'ghcr.io'
+    GITHUB_ORG = 'marcosilveira'  // Usando username pessoal para match com token
+    APP_NAME = 'tudoonline-app'
+    NAMESPACE = 'production'
+    GIT_CRYPT_KEY = 'tudoonline-legadogool-secretkey-git-crypt'  // ID da credencial no Jenkins
+    GITHUB_CREDENTIAL_ID = '7695161b-5a4b-49a9-a5a9-86c1b6f2bf1c'  // Github PAT
+  } 
+
+  options { 
+    timeout(time: 30, unit: 'MINUTES') 
+  } 
+
+  agent any
+
+  stages {
+    stage('Checkout') {
+      steps {
+        script {
+          // Determinar branch e ambiente baseado na branch do SCM
+          def branch = scm.branches[0].name
+          echo "Branch detectada: ${branch}"
+          
+          if (branch.contains('master')) {
+            env.NAMESPACE = 'production'
+            env.IMAGE_TAG = "${BUILD_NUMBER}"
+          } else if (branch.contains('staging')) {
+            env.NAMESPACE = 'staging'
+            env.IMAGE_TAG = "staging-${BUILD_NUMBER}"
+          } else {
+            error("Branch ${branch} não suportada. Use master ou staging.")
+          }
+          
+          echo "Deploying to ${env.NAMESPACE} with tag ${env.IMAGE_TAG}"
+          
+          // Checkout do código da aplicação para a pasta app/
+          dir('app') {
+            checkout scm
+          }
+        }
+      }
+    }
+
+    stage('Decrypt Config Files') {
+      steps {
+        script {
+          withCredentials([file(credentialsId: "${GIT_CRYPT_KEY}", variable: 'DECRYPT_KEY')]) {
+            sh """
+              # Descriptografar arquivos
+              git-crypt unlock "\$DECRYPT_KEY"
+              
+              # Renomear arquivo de ambiente para config.php
+              if [ "${NAMESPACE}" = "production" ]; then
+                mv .env_production config.php
+              elif [ "${NAMESPACE}" = "staging" ]; then
+                mv .env_staging config.php
+              fi
+              
+              echo "Arquivo config.php criado com sucesso"
+            """
+          }
+        }
+      }
+    }
+
+    stage('Login to GitHub Container Registry') {
+      steps {
+        script {
+          withCredentials([usernamePassword(credentialsId: "${GITHUB_CREDENTIAL_ID}", usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
+            sh """
+              echo \$GITHUB_TOKEN | docker login ${DOCKER_REGISTRY} -u \$GITHUB_USER --password-stdin
+            """
+          }
+        }
+      }
+    }
+
+    stage('Build Docker Images') {
+      parallel {
+        stage('Build Nginx') {
+          steps {
+            script {
+              sh """
+                docker build --network host -t ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${IMAGE_TAG} -f deploy/docker/nginx/Dockerfile .
+                docker tag ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${IMAGE_TAG} ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:latest
+              """
+            }
+          }
+        }
+        
+        stage('Build PHP') {
+          steps {
+            script {
+              sh """
+                docker build --network host -t ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${IMAGE_TAG} -f deploy/docker/php/Dockerfile .
+                docker tag ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${IMAGE_TAG} ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:latest
+              """
+            }
+          }
+        }
+      }
+    }
+
+    stage('Push Images') {
+      steps {
+        script {
+          sh """
+            docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${IMAGE_TAG}
+            docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:latest
+            docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${IMAGE_TAG}
+            docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:latest
+          """
+        }
+      }
+    }
+
+    stage('Deploy to Kubernetes') {
+      steps {
+        script {
+          // Atualizar imagens no deployment
+          sh """
+            kubectl apply -f deploy/k8s/ -n ${NAMESPACE}
+            kubectl set image deployment/${APP_NAME} \
+              nginx=${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${IMAGE_TAG} \
+              php=${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${IMAGE_TAG} \
+              -n ${NAMESPACE}
+            kubectl rollout status deployment/${APP_NAME} -n ${NAMESPACE} --timeout=10m
+          """
+        }
+      }
+    }
+  }
+  
+  post {
+    success {
+      echo "Deploy realizado com sucesso! 🚀"
+      echo "Imagens: ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${IMAGE_TAG}"
+    }
+    
+    failure {
+      echo "Deploy falhou! ❌"
+      emailext to: "marcosilveira39@gmail.com", 
+               subject: "Jenkins - ${env.JOB_NAME} - Build #${env.BUILD_NUMBER} FALHOU", 
+               body: "O job ${env.JOB_NAME} falhou. Verifique: ${env.BUILD_URL}"
+    }
+    
+    always {
+      // Limpar imagens locais para economizar espaço
+      sh """
+        docker rmi ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${IMAGE_TAG} || true
+        docker rmi ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${IMAGE_TAG} || true
+      """
+    }
+  }
+}

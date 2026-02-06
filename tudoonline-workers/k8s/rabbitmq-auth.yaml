@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rabbitmq-credentials
+  namespace: production
+type: Opaque
+stringData:
+  host: "amqp://rabbitmq.production.svc.cluster.local:5672/production"
+  username: "admin"
+  password: "adminpassword"
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: tudoonline-workers-rabbitmq
+  namespace: production
+spec:
+  secretTargetRef:
+  - parameter: host
+    name: rabbitmq-credentials
+    key: host
+  - parameter: username
+    name: rabbitmq-credentials
+    key: username
+  - parameter: password
+    name: rabbitmq-credentials
+    key: password

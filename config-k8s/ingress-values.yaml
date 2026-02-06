@@ -1,0 +1,32 @@
+# Valores recomendados para instalar o Nginx Ingress via Helm
+# helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx -f ingress-values.yaml -n ingress-nginx --create-namespace
+
+controller:
+  ingressClassResource:
+    name: nginx-infra
+    enabled: true
+    default: true
+    controllerValue: "k8s.io/ingress-nginx-infra"
+  
+  # Garante que o Nginx use a rede do host para performance e para receber IP real
+  hostNetwork: true
+  
+  # Configurações de DNS
+  dnsPolicy: ClusterFirstWithHostNet
+  
+  # Tipo de serviço (ClusterIP é suficiente pois usamos hostNetwork: true)
+  service:
+    type: ClusterIP
+  
+  # Métricas para monitoramento
+  metrics:
+    enabled: true
+
+  # Ajustes de recursos
+  resources:
+    requests:
+      cpu: 100m
+      memory: 90Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi

@@ -1,0 +1,29 @@
+{{- if .Values.worker.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rabbitmq-credentials
+  namespace: {{ .Values.namespace }}
+type: Opaque
+stringData:
+  host: {{ .Values.rabbitmq.host | quote }}
+  username: {{ .Values.rabbitmq.username | quote }}
+  password: {{ .Values.rabbitmq.password | quote }}
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: tudoonline-workers-rabbitmq
+  namespace: {{ .Values.namespace }}
+spec:
+  secretTargetRef:
+  - parameter: host
+    name: rabbitmq-credentials
+    key: host
+  - parameter: username
+    name: rabbitmq-credentials
+    key: username
+  - parameter: password
+    name: rabbitmq-credentials
+    key: password
+{{- end }}

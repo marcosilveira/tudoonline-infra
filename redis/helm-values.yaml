@@ -1,0 +1,33 @@
+
+auth:
+  enabled: true
+  password: "changeMeRedis"
+
+master:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+  persistence:
+    enabled: true
+    storageClass: "local-storage"
+    size: 10Gi
+    accessMode: ReadWriteOnce
+
+  configuration: |-
+    maxmemory 800mb
+    maxmemory-policy allkeys-lru
+
+replica:
+  replicaCount: 0
+
+architecture: standalone
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: false

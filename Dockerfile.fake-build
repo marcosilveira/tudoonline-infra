@@ -1,0 +1,3 @@
+FROM alpine:3.19
+# Copia o contexto atual (que será a pasta app/ de cada projeto) para /app na imagem
+COPY app/ /app/

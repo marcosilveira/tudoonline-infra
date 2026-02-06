@@ -1,0 +1,59 @@
+
+# Configuração para MySQL 8.0 (Compatível com RDS 8.0.42)
+image:
+  registry: docker.io
+  repository: bitnami/mysql
+  tag: 8.0.42-debian-12-r0 # Versão exata compatível com Community 8.0.42
+
+auth:
+  rootPassword: "changeMeProduction"
+  database: "tudoonline"
+  username: "tudoonline"
+  password: "changeMeUser"
+
+primary:
+  # Configuração para limitar uso de recursos
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2000m  # Limite rígido de 2 cores
+      memory: 16Gi # Recomendado para o MySQL 8.0
+
+  persistence:
+    enabled: true
+    storageClass: "local-storage"
+    size: 50Gi
+    accessMode: ReadWriteOnce
+
+  # Otimizações básicas para MySQL 8.0 em hardware limitado
+  configuration: |-
+    [mysqld]
+    default_authentication_plugin=mysql_native_password
+    skip-name-resolve
+    explicit_defaults_for_timestamp
+    basedir=/opt/bitnami/mysql
+    plugin_dir=/opt/bitnami/mysql/lib/plugin
+    port=3306
+    socket=/opt/bitnami/mysql/tmp/mysql.sock
+    datadir=/bitnami/mysql/data
+    tmpdir=/opt/bitnami/mysql/tmp
+    max_allowed_packet=16M
+    bind-address=0.0.0.0
+    pid-file=/opt/bitnami/mysql/tmp/mysqld.pid
+    log-error=/opt/bitnami/mysql/logs/mysqld.log
+    character-set-server=utf8mb4
+    collation-server=utf8mb4_unicode_ci
+    slow_query_log=0
+    long_query_time=10.0
+    # Otimização de memória
+    innodb_buffer_pool_size=2G 
+    max_connections=500
+
+architecture: standalone
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: false

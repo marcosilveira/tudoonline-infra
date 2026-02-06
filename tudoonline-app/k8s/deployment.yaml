@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tudoonline-app
+  namespace: production
+  labels:
+    app: tudoonline-app
+spec:
+  replicas: 4
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: tudoonline-app
+  template:
+    metadata:
+      labels:
+        app: tudoonline-app
+    spec:
+      serviceAccountName: tudoonline-app
+      terminationGracePeriodSeconds: 60
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      imagePullSecrets:
+        - name: ghcr-secret
+      # TODO: Add nodeAffinity when nodes are labeled with environment=apps-production
+      containers:
+        - name: nginx
+          image: ghcr.io/marcosilveira/tudoonline-app-nginx:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              cpu: 40m
+              memory: 48Mi
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 30 && /usr/sbin/nginx -s quit"]
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+            - name: nginx-server-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+            - name: php-fpm-socket
+              mountPath: /var/run/php-fpm
+            - name: imagens
+              mountPath: /app/imagens/
+            - name: etiquetas
+              mountPath: /app/etiquetas/
+        
+        - name: php
+          image: ghcr.io/marcosilveira/tudoonline-app-php:latest
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 400m
+              memory: 768Mi
+            limits:
+              cpu: 1000m
+              memory: 768Mi
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 15 && kill -SIGQUIT 1"]
+          volumeMounts:
+            - name: php-ini
+              mountPath: /etc/php7/conf.d/custom.ini
+              subPath: custom.ini
+            - name: php-fpm-config
+              mountPath: /etc/php7/php-fpm.d/www.conf
+              subPath: www.conf
+            - name: php-fpm-socket
+              mountPath: /var/run/php-fpm
+            - name: imagens
+              mountPath: /app/imagens/
+            - name: etiquetas
+              mountPath: /app/etiquetas/
+      
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: tudoonline-app-nginx
+        - name: nginx-server-config
+          configMap:
+            name: tudoonline-app-nginx-server
+        - name: php-ini
+          configMap:
+            name: tudoonline-app-php-ini
+        - name: php-fpm-config
+          configMap:
+            name: tudoonline-app-php-fpm
+        - name: php-fpm-socket
+          emptyDir: {}
+        - name: imagens
+          persistentVolumeClaim:
+            claimName: tudoonline-app-imagens
+        - name: etiquetas
+          persistentVolumeClaim:
+            claimName: tudoonline-app-etiquetas

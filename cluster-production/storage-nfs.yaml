@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-storage-pv
+spec:
+  capacity:
+    storage: 1000Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-manual
+  nfs:
+    path: /srv/tudoonline-storage
+    server: NFS_SERVER_IP_PLACEHOLDER
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shared-storage-pvc
+  namespace: production
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-manual
+  resources:
+    requests:
+      storage: 1000Gi

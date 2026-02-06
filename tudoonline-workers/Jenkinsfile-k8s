@@ -12,7 +12,7 @@ pipeline {
     // Definição do repositório da aplicação
     APP_REPO_URL = 'git@github.com:tudoonline/legadogool-workers.git'
     APP_BRANCH = 'master'
-    GIT_CREDENTIAL_ID = 'jenkins@git'
+    GIT_CREDENTIAL_ID = 'tudoonline-workers@git'
   } 
 
   options { 

@@ -6,8 +6,13 @@ pipeline {
     APP_NAME = 'tudoonline-workers'
     NAMESPACE = 'production'
     GITHUB_CREDENTIAL_ID = '7695161b-5a4b-49a9-a5a9-86c1b6f2bf1c'
-    HELM_CHART_PATH = "./deploy/k8s"
+    // Caminho relativo à raiz do repositório de infra
+    HELM_CHART_PATH = "tudoonline-workers/k8s"
     HELM_TIMEOUT = '600s'
+    // Definição do repositório da aplicação
+    APP_REPO_URL = 'git@github.com:tudoonline/legadogool-workers.git'
+    APP_BRANCH = 'master'
+    GIT_CREDENTIAL_ID = 'jenkins@git'
   } 
 
   options { 
@@ -17,24 +22,16 @@ pipeline {
   agent any
 
   stages {
-    stage('Checkout') {
+    stage('Checkout App Code') {
       steps {
         script {
-          def branch = scm.branches[0].name
-          echo "Branch detectada: ${branch}"
-          
-          if (branch.contains('master')) {
-            env.NAMESPACE = 'production'
-            env.IMAGE_TAG = "${BUILD_NUMBER}"
-          } else {
-            error("Branch ${branch} não suportada. Use master.")
-          }
-          
-          echo "Deploying to ${env.NAMESPACE} with tag ${env.IMAGE_TAG}"
-          
-          dir('app') {
-            checkout scm
-          }
+           // O Jenkinsfile já está no repo de infra, então o workspace tem os arquivos de infra.
+           // Precisamos baixar o código da aplicação na pasta 'app' para o Dockerfile usar.
+           
+           echo "Cloning Application Code..."
+           dir('app') {
+             git branch: APP_BRANCH, url: APP_REPO_URL, credentialsId: GIT_CREDENTIAL_ID
+           }
         }
       }
     }
@@ -54,9 +51,11 @@ pipeline {
     stage('Build Docker Image') {
       steps {
         script {
+          // O build roda na raiz do workspace (infra). O Dockerfile está em tudoonline-workers/docker/worker/Dockerfile
+          // O contexto (.) contém a pasta 'app' que acabamos de baixar.
           sh """
-            docker build --network host -t ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${IMAGE_TAG} -f deploy/docker/worker/Dockerfile .
-            docker tag ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${IMAGE_TAG} ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:latest
+            docker build --network host -t ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${BUILD_NUMBER} -f tudoonline-workers/docker/worker/Dockerfile .
+            docker tag ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${BUILD_NUMBER} ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:latest
           """
         }
       }
@@ -66,7 +65,7 @@ pipeline {
       steps {
         script {
           sh """
-            docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${IMAGE_TAG}
+            docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${BUILD_NUMBER}
             docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:latest
           """
         }
@@ -78,13 +77,14 @@ pipeline {
         script {
           sh """
             # Update image tag in values file
-            sed -i 's|image:.*|image: ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${IMAGE_TAG}|g' ${HELM_CHART_PATH}/helm-values-production.yaml
+            sed -i 's|image:.*|image: ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${BUILD_NUMBER}|g' ${HELM_CHART_PATH}/helm-values-production.yaml
             
             # Deploy with Helm
             helm upgrade --install tudoonline-workers \
               --namespace ${NAMESPACE} \
               -f ${HELM_CHART_PATH}/helm-values-production.yaml \
-              ${HELM_CHART_PATH}
+              ${HELM_CHART_PATH} \
+              --wait --timeout ${HELM_TIMEOUT} --atomic
           """
         }
       }
@@ -94,19 +94,16 @@ pipeline {
   post {
     success {
       echo "Deploy realizado com sucesso! 🚀"
-      echo "Imagem: ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${IMAGE_TAG}"
+      echo "Imagem: ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${BUILD_NUMBER}"
     }
     
     failure {
       echo "Deploy falhou! ❌"
-      emailext to: "marcosilveira39@gmail.com", 
-               subject: "Jenkins - ${env.JOB_NAME} - Build #${env.BUILD_NUMBER} FALHOU", 
-               body: "O job ${env.JOB_NAME} falhou. Verifique: ${env.BUILD_URL}"
     }
     
     always {
       sh """
-        docker rmi ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${IMAGE_TAG} || true
+        docker rmi ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${BUILD_NUMBER} || true
       """
     }
   }

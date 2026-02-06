@@ -2,43 +2,46 @@
 pipeline {
   environment { 
     DOCKER_REGISTRY = 'ghcr.io'
-    GITHUB_ORG = 'marcosilveira'  // Usando username pessoal para match com token
+    GITHUB_ORG = 'marcosilveira'
     APP_NAME = 'tudoonline-app'
     NAMESPACE = 'production'
-    GIT_CRYPT_KEY = 'tudoonline-legadogool-secretkey-git-crypt'  // ID da credencial no Jenkins
-    GITHUB_CREDENTIAL_ID = '7695161b-5a4b-49a9-a5a9-86c1b6f2bf1c'  // Github PAT
+    GITHUB_CREDENTIAL_ID = '7695161b-5a4b-49a9-a5a9-86c1b6f2bf1c'
+    // App Repo
+    APP_REPO_URL = 'https://github.com/tudoonline/legadogool.git'
+    APP_BRANCH = 'master'
+    GIT_CREDENTIAL_ID = '7695161b-5a4b-49a9-a5a9-86c1b6f2bf1c'
+    // Secrets
+    GIT_CRYPT_KEY = 'tudoonline-legadogool-secretkey-git-crypt'
   } 
 
   options { 
     timeout(time: 30, unit: 'MINUTES') 
   } 
 
+  triggers {
+    GenericTrigger(
+      genericVariables: [
+        [key: 'ref', value: '$.ref']
+      ],
+      token: 'tudoonline-app-token',
+      causeString: 'Triggered by GitHub Webhook',
+      printContributedVariables: true,
+      printPostContent: true,
+      regexpFilterText: '$ref',
+      regexpFilterExpression: 'refs/heads/master'
+    )
+  }
+
   agent any
 
   stages {
-    stage('Checkout') {
+    stage('Checkout App Code') {
       steps {
         script {
-          // Determinar branch e ambiente baseado na branch do SCM
-          def branch = scm.branches[0].name
-          echo "Branch detectada: ${branch}"
-          
-          if (branch.contains('master')) {
-            env.NAMESPACE = 'production'
-            env.IMAGE_TAG = "${BUILD_NUMBER}"
-          } else if (branch.contains('staging')) {
-            env.NAMESPACE = 'staging'
-            env.IMAGE_TAG = "staging-${BUILD_NUMBER}"
-          } else {
-            error("Branch ${branch} não suportada. Use master ou staging.")
-          }
-          
-          echo "Deploying to ${env.NAMESPACE} with tag ${env.IMAGE_TAG}"
-          
-          // Checkout do código da aplicação para a pasta app/
-          dir('app') {
-            checkout scm
-          }
+           echo "Cloning Application Code..."
+           dir('app') {
+             git branch: APP_BRANCH, url: APP_REPO_URL, credentialsId: GIT_CREDENTIAL_ID
+           }
         }
       }
     }
@@ -46,20 +49,26 @@ pipeline {
     stage('Decrypt Config Files') {
       steps {
         script {
-          withCredentials([file(credentialsId: "${GIT_CRYPT_KEY}", variable: 'DECRYPT_KEY')]) {
-            sh """
-              # Descriptografar arquivos
-              git-crypt unlock "\$DECRYPT_KEY"
-              
-              # Renomear arquivo de ambiente para config.php
-              if [ "${NAMESPACE}" = "production" ]; then
-                mv .env_production config.php
-              elif [ "${NAMESPACE}" = "staging" ]; then
-                mv .env_staging config.php
-              fi
-              
-              echo "Arquivo config.php criado com sucesso"
-            """
+          // Precisamos descriptografar o código da aplicação (pasta app)
+          dir('app') {
+            withCredentials([file(credentialsId: "${GIT_CRYPT_KEY}", variable: 'DECRYPT_KEY')]) {
+              sh """
+                # Descriptografar arquivos se necessário (verificar se repo usa git-crypt)
+                if [ -d ".git-crypt" ]; then
+                   git-crypt unlock "\$DECRYPT_KEY"
+                   echo "Repositório descriptografado."
+                else
+                   echo "git-crypt não detectado no repositório."
+                fi
+                
+                # Configurar config.php (legado)
+                if [ "${NAMESPACE}" = "production" ] && [ -f ".env_production" ]; then
+                  mv .env_production config.php
+                elif [ "${NAMESPACE}" = "staging" ] && [ -f ".env_staging" ]; then
+                  mv .env_staging config.php
+                fi
+              """
+            }
           }
         }
       }
@@ -83,8 +92,8 @@ pipeline {
           steps {
             script {
               sh """
-                docker build --network host -t ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${IMAGE_TAG} -f deploy/docker/nginx/Dockerfile .
-                docker tag ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${IMAGE_TAG} ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:latest
+                docker build --network host -t ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} -f tudoonline-app/docker/nginx/Dockerfile .
+                docker tag ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:latest
               """
             }
           }
@@ -94,8 +103,8 @@ pipeline {
           steps {
             script {
               sh """
-                docker build --network host -t ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${IMAGE_TAG} -f deploy/docker/php/Dockerfile .
-                docker tag ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${IMAGE_TAG} ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:latest
+                docker build --network host -t ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} -f tudoonline-app/docker/php/Dockerfile .
+                docker tag ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:latest
               """
             }
           }
@@ -107,9 +116,9 @@ pipeline {
       steps {
         script {
           sh """
-            docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${IMAGE_TAG}
+            docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER}
             docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:latest
-            docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${IMAGE_TAG}
+            docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER}
             docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:latest
           """
         }
@@ -119,13 +128,17 @@ pipeline {
     stage('Deploy to Kubernetes') {
       steps {
         script {
-          // Atualizar imagens no deployment
           sh """
-            kubectl apply -f deploy/k8s/ -n ${NAMESPACE}
+            # Aplicar manifestos Kubernetes da pasta de infraestrutura
+            kubectl apply -f tudoonline-app/k8s/ -n ${NAMESPACE}
+            
+            # Atualizar imagens no deployment
             kubectl set image deployment/${APP_NAME} \
-              nginx=${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${IMAGE_TAG} \
-              php=${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${IMAGE_TAG} \
+              nginx=${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} \
+              php=${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} \
               -n ${NAMESPACE}
+              
+            # Aguardar rollout
             kubectl rollout status deployment/${APP_NAME} -n ${NAMESPACE} --timeout=10m
           """
         }
@@ -136,21 +149,16 @@ pipeline {
   post {
     success {
       echo "Deploy realizado com sucesso! 🚀"
-      echo "Imagens: ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${IMAGE_TAG}"
     }
     
     failure {
       echo "Deploy falhou! ❌"
-      emailext to: "marcosilveira39@gmail.com", 
-               subject: "Jenkins - ${env.JOB_NAME} - Build #${env.BUILD_NUMBER} FALHOU", 
-               body: "O job ${env.JOB_NAME} falhou. Verifique: ${env.BUILD_URL}"
     }
     
     always {
-      // Limpar imagens locais para economizar espaço
       sh """
-        docker rmi ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${IMAGE_TAG} || true
-        docker rmi ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${IMAGE_TAG} || true
+        docker rmi ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} || true
+        docker rmi ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} || true
       """
     }
   }

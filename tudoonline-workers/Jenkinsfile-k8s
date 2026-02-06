@@ -10,9 +10,9 @@ pipeline {
     HELM_CHART_PATH = "tudoonline-workers/k8s"
     HELM_TIMEOUT = '600s'
     // Definição do repositório da aplicação
-    APP_REPO_URL = 'git@github.com:tudoonline/legadogool-workers.git'
+    APP_REPO_URL = 'https://github.com/tudoonline/legadogool-workers.git'
     APP_BRANCH = 'master'
-    GIT_CREDENTIAL_ID = 'tudoonline-workers@git'
+    GIT_CREDENTIAL_ID = '7695161b-5a4b-49a9-a5a9-86c1b6f2bf1c'
   } 
 
   options { 

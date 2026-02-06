@@ -19,6 +19,20 @@ pipeline {
     timeout(time: 30, unit: 'MINUTES') 
   } 
 
+  triggers {
+    GenericTrigger(
+      genericVariables: [
+        [key: 'ref', value: '$.ref']
+      ],
+      token: 'tudoonline-workers-token',
+      causeString: 'Triggered by GitHub Webhook',
+      printContributedVariables: true,
+      printPostContent: true,
+      regexpFilterText: '$ref',
+      regexpFilterExpression: 'refs/heads/master'
+    )
+  }
+
   agent any
 
   stages {

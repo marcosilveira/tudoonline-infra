@@ -63,7 +63,7 @@ pipeline {
           // O build roda na raiz do workspace (infra). O Dockerfile está em tudoonline-workers/docker/worker/Dockerfile
           // O contexto (.) contém a pasta 'app' que baixamos do repo da aplicação
           sh """
-            docker build --no-cache --network host -t ${DOCKER_IMAGE}:${DOCKER_TAG} -f tudoonline-workers/docker/worker/Dockerfile .
+            docker build --network host -t ${DOCKER_IMAGE}:${DOCKER_TAG} -f tudoonline-workers/docker/worker/Dockerfile.prod2 .
           """
         }
       }

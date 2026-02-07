@@ -1,0 +1,90 @@
+pipeline {
+  agent any
+  environment {
+    // Configurações do Repositório
+    GIT_REPO_URL = 'https://github.com/tudoonlineteam/tudoonline-workers.git'
+    GIT_BRANCH = 'prod2' // Branch específica
+    
+    // Credenciais
+    GITHUB_CREDENTIAL_ID = 'github-token-secret' 
+    KUBECONFIG_ID = 'kubeconfig-production'
+    
+    // Imagem Docker (Tag específica para prod2)
+    DOCKER_IMAGE = 'ghcr.io/marcosilveira/tudoonline-workers'
+    DOCKER_TAG = 'prod2'
+  }
+  
+  stages {
+    stage('Checkout Infra') {
+      steps {
+        checkout scm
+      }
+    }
+    
+    stage('Checkout App Code (Prod2)') {
+      steps {
+        script {
+          echo "Cloning Application Code (Branch: ${GIT_BRANCH})..."
+          dir('app') {
+            git branch: "${GIT_BRANCH}",
+                url: "${GIT_REPO_URL}",
+                credentialsId: "${GITHUB_CREDENTIAL_ID}"
+          }
+        }
+      }
+    }
+    
+    stage('Login to GHCR') {
+      steps {
+        script {
+          withCredentials([usernamePassword(credentialsId: "${GITHUB_CREDENTIAL_ID}", usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
+            sh 'echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_USER --password-stdin'
+          }
+        }
+      }
+    }
+    
+    stage('Build Docker Image') {
+      steps {
+        script {
+          sh """
+            # Build simples direto na raiz do projeto
+            docker build --network host -t ${DOCKER_IMAGE}:${DOCKER_TAG} -f app/Dockerfile app/
+          """
+        }
+      }
+    }
+
+    stage('Push Docker Image') {
+      steps {
+        script {
+          sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
+        }
+      }
+    }
+    
+    stage('Deploy to Kubernetes (Helm)') {
+      steps {
+        script {
+          withKubeConfig([credentialsId: "${KUBECONFIG_ID}"]) {
+            // Usa o Helm com valores específicos para Prod2 (VPS Dedicada)
+            sh """
+              helm upgrade --install tudoonline-workers-prod2 ./tudoonline-workers/k8s \
+                --namespace production \
+                --values ./tudoonline-workers/k8s/helm-values-prod2.yaml \
+                --set worker.image=${DOCKER_IMAGE}:${DOCKER_TAG}
+            """
+          }
+        }
+      }
+    }
+  }
+  
+  post {
+    always {
+      echo "Deploy Prod2 Finalizado!"
+      // Limpeza de imagens Docker locais para economizar espaço no Jenkins
+      sh "docker rmi ${DOCKER_IMAGE}:${DOCKER_TAG} || true"
+    }
+  }
+}

@@ -1,0 +1,48 @@
+# Herda de production, mas sobrescreve para Prod2 Dedicated
+worker:
+  image: ghcr.io/marcosilveira/tudoonline-workers:prod2 # Vamos garantir que o Jenkins builde essa tag
+
+  # Força os pods a rodarem SOMENTE na VPS Dedicada
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: role
+                operator: In
+                values:
+                  - worker-dedicated
+
+  # Permite que os pods "tolerem" o Taint da VPS (que proíbe outros pods)
+  tolerations:
+    - key: "dedicated"
+      operator: "Equal"
+      value: "worker"
+      effect: "NoSchedule"
+
+  workers:
+    # Worker Sentinela para Crons Manuais (Nunca morre, não depende de fila)
+    # Use este container para rodar 'crictl exec ...' via SSH
+    - name: cron-runner
+      command: ["/bin/sh", "-c", "while true; do sleep 30; done;"]
+      replicaCount: 1
+      minReplicaCount: 1
+      maxReplicaCount: 1
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+      persistence:
+        - name: imagens
+          existingClaim: tudoonline-app-imagens
+          mountPath: /app/imagens/
+        - name: etiquetas
+          existingClaim: tudoonline-app-etiquetas
+          mountPath: /app/etiquetas/
+      # Sem KEDA triggers, para ficar sempre ligado.
+
+    # Lista de Workers Normais (Herda do original se fosse merge, mas Helm Value sobrescreve lista)
+    # PRECISAREMOS COPIAR A LISTA INTEIRA DO production AQUI SE QUISERMOS RODAR TODOS.
+    # Como não sei se você quer rodar TODOS os workers na prod2 ou só alguns, 
+    # vou deixar apenas o cron-runner por enquanto para testarmos a conexão.
+    # DEPOIS, copiamos a lista gigante do helm-values-production.yaml pra cá.

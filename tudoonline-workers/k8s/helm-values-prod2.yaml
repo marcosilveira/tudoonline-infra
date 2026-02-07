@@ -1,24 +1,25 @@
 # Herda de production, mas sobrescreve para Prod2 Dedicated
 worker:
-  image: ghcr.io/marcosilveira/tudoonline-workers:prod2 # Vamos garantir que o Jenkins builde essa tag
-
-  # Força os pods a rodarem SOMENTE na VPS Dedicada
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-          - matchExpressions:
-              - key: role
-                operator: In
-                values:
-                  - worker-dedicated
-
-  # Permite que os pods "tolerem" o Taint da VPS (que proíbe outros pods)
-  tolerations:
-    - key: "dedicated"
-      operator: "Equal"
-      value: "worker"
-      effect: "NoSchedule"
+  defaults:
+    image: ghcr.io/marcosilveira/tudoonline-workers:prod2
+    
+    # Força os pods a rodarem SOMENTE na VPS Dedicada (vmi3070952 / 217.216.82.188)
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: role
+                  operator: In
+                  values:
+                    - worker-dedicated
+    
+    # Permite rodar no node com Taint dedicado (dedicado à workers)
+    tolerations:
+      - key: "dedicated"
+        operator: "Equal"
+        value: "worker"
+        effect: "NoSchedule"
 
   workers:
     # Worker Sentinela para Crons Manuais (Nunca morre, não depende de fila)

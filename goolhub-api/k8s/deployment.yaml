@@ -26,9 +26,9 @@ spec:
       - name: php-socket
         emptyDir: {}
       - name: files-storage
-        emptyDir: {}
-        # persistentVolumeClaim:
-        #   claimName: goolhub-api-files
+        persistentVolumeClaim:
+          claimName: goolhub-api-files
+        # emptyDir: {}
         
       containers:
       - name: nginx

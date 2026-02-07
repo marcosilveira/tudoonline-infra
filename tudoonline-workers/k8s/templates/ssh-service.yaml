@@ -1,3 +1,4 @@
+{{- if .Values.ssh.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -8,7 +9,10 @@ spec:
   ports:
     - port: 22
       targetPort: 22
-      nodePort: 30022 # Porta fixa para facilitar o SSH (Acesse com ssh -p 30022)
+      {{- if .Values.ssh.nodePort }}
+      nodePort: {{ .Values.ssh.nodePort }}
+      {{- end }}
   selector:
     # Seleciona exatamente o pod do cron-runner
     app: {{ .Values.worker.defaults.namePrefix }}cron-runner
+{{- end }}

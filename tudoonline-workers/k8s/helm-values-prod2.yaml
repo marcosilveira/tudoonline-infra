@@ -1,4 +1,9 @@
 # Herda de production, mas sobrescreve para Prod2 Dedicated
+# Configuração SSH para Debug (Apenas Prod2)
+ssh:
+  enabled: true
+  nodePort: 30022
+
 worker:
   defaults:
     image: ghcr.io/marcosilveira/tudoonline-workers:prod2

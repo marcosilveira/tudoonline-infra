@@ -58,6 +58,10 @@ spec:
         resources:
           {{- toYaml . | nindent 10 }}
         {{- end }}
+        {{- with .securityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         {{- if .persistence }}
         volumeMounts:
         {{- range .persistence }}

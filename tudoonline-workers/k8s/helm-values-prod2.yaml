@@ -25,8 +25,10 @@ worker:
     # Worker Sentinela para Crons Manuais (Nunca morre, não depende de fila)
     # Use este container para rodar 'crictl exec ...' via SSH
     - name: cron-runner
-      # Inicia o SSHD automaticamente (agora que sabemos que funciona)
-      command: ["/bin/sh", "-c", "mkdir -p /run/sshd && /usr/sbin/sshd -D"]
+      # Inicia o SSHD automaticamente (Instalação em Runtime devido a problemas de rede no Build)
+      command: ["/bin/sh", "-c", "apk update && apk add openssh && mkdir -p /root/.ssh && chmod 700 /root/.ssh && ssh-keygen -A && echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && echo 'root:tudoonline' | chpasswd && mkdir -p /run/sshd && /usr/sbin/sshd -D"]
+      securityContext:
+        runAsUser: 0
       ports:
         - containerPort: 22
           name: ssh

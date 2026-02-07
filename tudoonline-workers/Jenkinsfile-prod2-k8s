@@ -2,7 +2,7 @@ pipeline {
   agent any
   environment {
     // Configurações do Repositório
-    GIT_REPO_URL = 'https://github.com/tudoonlineteam/tudoonline-workers.git'
+    GIT_REPO_URL = 'https://github.com/tudoonline/legadogool-workers.git'
     GIT_BRANCH = 'prod2' // Branch específica
     
     // Credenciais
@@ -47,9 +47,10 @@ pipeline {
     stage('Build Docker Image') {
       steps {
         script {
+          // O build roda na raiz do workspace (infra). O Dockerfile está em tudoonline-workers/docker/worker/Dockerfile
+          // O contexto (.) contém a pasta 'app' que baixamos do repo da aplicação
           sh """
-            # Build simples direto na raiz do projeto
-            docker build --network host -t ${DOCKER_IMAGE}:${DOCKER_TAG} -f app/Dockerfile app/
+            docker build --network host -t ${DOCKER_IMAGE}:${DOCKER_TAG} -f tudoonline-workers/docker/worker/Dockerfile .
           """
         }
       }

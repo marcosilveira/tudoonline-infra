@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goolhub-api
+  namespace: production
+  labels:
+    app: goolhub-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: goolhub-api
+  template:
+    metadata:
+      labels:
+        app: goolhub-api
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      volumes:
+      - name: shared-files
+        emptyDir: {}
+      - name: config-volume
+        configMap:
+          name: goolhub-api-config
+      - name: php-socket
+        emptyDir: {}
+      - name: files-storage
+        persistentVolumeClaim:
+          claimName: goolhub-api-files
+        
+      containers:
+      - name: nginx
+        image: ghcr.io/marcosilveira/goolhub-api-nginx:latest
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: shared-files
+          mountPath: /var/www/html
+        - name: config-volume
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: config-volume
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: default.conf
+        - name: php-socket
+          mountPath: /var/run/php-fpm
+        - name: files-storage
+          mountPath: /app/public/files/
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            cpu: 20m
+            memory: 32Mi
+
+      - name: php
+        image: ghcr.io/marcosilveira/goolhub-api-php:latest
+        volumeMounts:
+        - name: shared-files
+          mountPath: /var/www/html
+        - name: config-volume
+          mountPath: /usr/local/etc/php/php.ini
+          subPath: php.ini
+        - name: config-volume
+          mountPath: /usr/local/etc/php-fpm.d/www.conf
+          subPath: php-fpm.conf
+        - name: php-socket
+          mountPath: /var/run/php-fpm
+        - name: files-storage
+          mountPath: /app/public/files/
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 768Mi

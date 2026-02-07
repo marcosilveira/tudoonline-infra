@@ -6,14 +6,6 @@ pipeline {
     APP_NAME = 'goolhub-api'
     NAMESPACE = 'production'
     GITHUB_CREDENTIAL_ID = '7695161b-5a4b-49a9-a5a9-86c1b6f2bf1c'
-    // AWS / Helm Config (Legacy from original file)
-    AWS_REGION = "us-east-1"
-    AWS_ACCOUNT_ID = '967910066457'
-    AWS_ROLE_ARN = "arn:aws:iam::967910066457:role/goolhub-api-production"
-    HELM_CHART_NAME = 'goolhub'
-    HELM_REPO_CUSTOM_NAME = 'tudoonline-stable'
-    HELM_REPO_CUSTOM_URL = 's3://tudoonline-helm-charts/stable'
-    HELM_TIMEOUT = '600s'
     // App Repo
     APP_REPO_URL = 'https://github.com/tudoonlineteam/goolhub-api.git'
     APP_BRANCH = 'master'
@@ -87,18 +79,6 @@ pipeline {
             }
           }
         }
-        
-        stage('Build Generic/Build') {
-          steps {
-             script {
-                // Mantendo build da imagem 'build' caso seja usada por algum job
-                sh """
-                  docker build --network host -t ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-build:${BUILD_NUMBER} -f goolhub-api/docker/build/Dockerfile .
-                  docker tag ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-build:${BUILD_NUMBER} ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-build:latest
-                """
-             }
-          }
-        }
       }
     }
 
@@ -110,8 +90,6 @@ pipeline {
             docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:latest
             docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER}
             docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:latest
-            docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-build:${BUILD_NUMBER}
-            docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-build:latest
           """
         }
       }
@@ -120,25 +98,19 @@ pipeline {
     stage('Deploy to Kubernetes') {
       steps {
         script {
-           // Necessário setup do helm repo S3 (usando credenciais AWS implícitas/agent)
-           withEnv(["AWS_ROLE_ARN=${AWS_ROLE_ARN}", "AWS_REGION=${AWS_REGION}"]) {
-             sh """
-                # Adicionar repo customizado (S3)
-                helm repo add ${HELM_REPO_CUSTOM_NAME} ${HELM_REPO_CUSTOM_URL} || true
-                helm repo update
+           sh """
+              # Aplicar manifestos Kubernetes da pasta criada
+              kubectl apply -f goolhub-api/k8s/ -n ${NAMESPACE}
+              
+              # Atualizar imagens no deployment
+              kubectl set image deployment/${APP_NAME} \
+                nginx=${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} \
+                php=${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} \
+                -n ${NAMESPACE}
                 
-                # Update no Release usando Chart Remoto e Values Locais
-                helm upgrade --install ${APP_NAME} \
-                  --namespace ${NAMESPACE} \
-                  -f goolhub-api/helm-values-production.yaml \
-                  ${HELM_REPO_CUSTOM_NAME}/${HELM_CHART_NAME} \
-                  --set app.nginx.image.repository=${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx \
-                  --set app.nginx.image.tag=${BUILD_NUMBER} \
-                  --set app.php.image.repository=${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php \
-                  --set app.php.image.tag=${BUILD_NUMBER} \
-                  --wait --timeout ${HELM_TIMEOUT} --atomic
-             """
-           }
+              # Aguardar rollout
+              kubectl rollout status deployment/${APP_NAME} -n ${NAMESPACE} --timeout=10m
+           """
         }
       }
     }
@@ -157,7 +129,6 @@ pipeline {
       sh """
         docker rmi ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} || true
         docker rmi ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} || true
-        docker rmi ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-build:${BUILD_NUMBER} || true
       """
     }
   }

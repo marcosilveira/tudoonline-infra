@@ -25,7 +25,7 @@ RUN addgroup -g $GROUP_GID -S $GROUP_NAME && \
 RUN set -ex \
     apk update -qq && \
     # Install curl specific version to application support uri with white spaces
-    apk add 'libcurl<7.68' 'curl<7.68' --repository=https://dl-cdn.alpinelinux.org/alpine/v3.10/main && \
+    apk add 'libcurl<7.68' 'curl<7.68' --repository=http://dl-cdn.alpinelinux.org/alpine/v3.10/main && \
     apk add tzdata ca-certificates $WORKERS_ADD $PHP_EXTENSIONS && \
     rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/* 
 
@@ -62,10 +62,7 @@ RUN set -ex && \
 WORKDIR $USER_HOME
 
 # User
-# USER $USER_NAME
-
-# User (Commented out to allow running as root for SSHD)
-# USER $USER_NAME
+USER $USER_NAME
 STOPSIGNAL SIGQUIT
 
 # Start

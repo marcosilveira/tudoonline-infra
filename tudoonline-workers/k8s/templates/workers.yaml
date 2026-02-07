@@ -40,6 +40,10 @@ spec:
       {{- with $.Values.worker.defaults.schedulerName }}
       schedulerName: {{ . }}
       {{- end }}
+      {{- with .tolerations | default $.Values.worker.defaults.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
       - name: worker
         image: {{ $.Values.worker.defaults.image }}

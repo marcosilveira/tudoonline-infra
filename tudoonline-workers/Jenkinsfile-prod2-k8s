@@ -6,7 +6,7 @@ pipeline {
     GIT_BRANCH = 'prod2' // Branch específica
     
     // Credenciais
-    GITHUB_CREDENTIAL_ID = 'github-token-secret' 
+    GITHUB_CREDENTIAL_ID = '7695161b-5a4b-49a9-a5a9-86c1b6f2bf1c' 
     KUBECONFIG_ID = 'kubeconfig-production'
     
     // Imagem Docker (Tag específica para prod2)

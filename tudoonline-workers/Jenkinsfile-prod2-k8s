@@ -1,4 +1,17 @@
 pipeline {
+  triggers {
+    GenericTrigger(
+     genericVariables: [
+      [key: 'ref', value: '$.ref']
+     ],
+     token: 'tudoonline-workers-prod2-token',
+     causeString: 'Triggered by GitHub Webhook',
+     printContributedVariables: true,
+     printPostContent: true,
+     regexpFilterText: '$ref',
+     regexpFilterExpression: 'prod2$'
+    )
+  }
   agent any
   environment {
     // Configurações do Repositório

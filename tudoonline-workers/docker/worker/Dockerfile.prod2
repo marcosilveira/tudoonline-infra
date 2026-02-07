@@ -61,7 +61,6 @@ RUN set -ex && \
 # Workdir
 WORKDIR $USER_HOME
 
-# User
 # USER $USER_NAME
 
 # User (Commented out to allow running as root for SSHD)

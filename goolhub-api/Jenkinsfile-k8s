@@ -109,19 +109,21 @@ pipeline {
     stage('Deploy to Kubernetes') {
       steps {
         script {
-           sh """
-              # Aplicar manifestos Kubernetes da pasta criada
-              kubectl apply -f goolhub-api/k8s/ -n ${NAMESPACE}
-              
-              # Atualizar imagens no deployment
-              kubectl set image deployment/${APP_NAME} \
-                nginx=${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} \
-                php=${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} \
-                -n ${NAMESPACE}
+           retry(3) {
+             sh """
+                # Aplicar manifestos Kubernetes da pasta criada
+                kubectl apply -f goolhub-api/k8s/ -n ${NAMESPACE}
                 
-              # Aguardar rollout
-              kubectl rollout status deployment/${APP_NAME} -n ${NAMESPACE} --timeout=10m
-           """
+                # Atualizar imagens no deployment
+                kubectl set image deployment/${APP_NAME} \
+                  nginx=${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} \
+                  php=${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} \
+                  -n ${NAMESPACE}
+                  
+                # Aguardar rollout
+                kubectl rollout status deployment/${APP_NAME} -n ${NAMESPACE} --timeout=10m
+             """
+           }
         }
       }
     }

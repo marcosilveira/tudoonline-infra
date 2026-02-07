@@ -24,7 +24,11 @@ worker:
     # Worker Sentinela para Crons Manuais (Nunca morre, não depende de fila)
     # Use este container para rodar 'crictl exec ...' via SSH
     - name: cron-runner
-      command: ["/bin/sh", "-c", "while true; do sleep 30; done;"]
+      # Inicia o SSHD em modo Debug/Daemon (Foreground) para manter o container vivo
+      command: ["/usr/sbin/sshd", "-D"]
+      ports:
+        - containerPort: 22
+          name: ssh
       replicaCount: 1
       minReplicaCount: 1
       maxReplicaCount: 1

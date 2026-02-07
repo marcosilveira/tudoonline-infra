@@ -62,7 +62,17 @@ RUN set -ex && \
 WORKDIR $USER_HOME
 
 # User
-USER $USER_NAME
+# Install SSH Server for VPS Access
+RUN apk add openssh \
+    && mkdir /root/.ssh \
+    && chmod 700 /root/.ssh \
+    && ssh-keygen -A \
+    && sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config \
+    && echo "PermitRootLogin yes" >> /etc/ssh/sshd_config \
+    && echo "root:tudoonline" | chpasswd
+
+# User (Commented out to allow running as root for SSHD)
+# USER $USER_NAME
 STOPSIGNAL SIGQUIT
 
 # Start

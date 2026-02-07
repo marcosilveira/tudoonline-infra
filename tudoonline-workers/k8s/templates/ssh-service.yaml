@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tudoonline-workers-ssh
+  namespace: {{ .Values.namespace }}
+spec:
+  type: NodePort
+  ports:
+    - port: 22
+      targetPort: 22
+      nodePort: 30022 # Porta fixa para facilitar o SSH (Acesse com ssh -p 30022)
+  selector:
+    # Seleciona exatamente o pod do cron-runner
+    app: {{ .Values.worker.defaults.namePrefix }}cron-runner

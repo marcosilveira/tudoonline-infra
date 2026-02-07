@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: rabbitmq-credentials
+  name: {{ .Release.Name }}-rabbitmq-credentials
   namespace: {{ .Values.namespace }}
 type: Opaque
 stringData:
@@ -13,17 +13,17 @@ stringData:
 apiVersion: keda.sh/v1alpha1
 kind: TriggerAuthentication
 metadata:
-  name: tudoonline-workers-rabbitmq
+  name: {{ .Release.Name }}-rabbitmq
   namespace: {{ .Values.namespace }}
 spec:
   secretTargetRef:
   - parameter: host
-    name: rabbitmq-credentials
+    name: {{ .Release.Name }}-rabbitmq-credentials
     key: host
   - parameter: username
-    name: rabbitmq-credentials
+    name: {{ .Release.Name }}-rabbitmq-credentials
     key: username
   - parameter: password
-    name: rabbitmq-credentials
+    name: {{ .Release.Name }}-rabbitmq-credentials
     key: password
 {{- end }}

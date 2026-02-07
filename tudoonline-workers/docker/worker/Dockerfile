@@ -65,8 +65,7 @@ WORKDIR $USER_HOME
 # Install SSH Server for VPS Access
 # Install SSH Server for VPS Access
 # Install SSH Server for VPS Access
-RUN sed -i 's/dl-cdn.alpinelinux.org/uk.alpinelinux.org/g' /etc/apk/repositories && \
-    apk update && apk add --no-cache openssh \
+RUN apk update && apk add --no-cache openssh \
     && mkdir /root/.ssh \
     && chmod 700 /root/.ssh \
     && ssh-keygen -A \

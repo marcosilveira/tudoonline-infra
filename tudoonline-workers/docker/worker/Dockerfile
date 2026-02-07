@@ -63,7 +63,8 @@ WORKDIR $USER_HOME
 
 # User
 # Install SSH Server for VPS Access
-RUN apk add openssh \
+# Install SSH Server for VPS Access
+RUN apk update && apk add --no-cache openssh \
     && mkdir /root/.ssh \
     && chmod 700 /root/.ssh \
     && ssh-keygen -A \

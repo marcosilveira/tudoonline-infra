@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tudoonline-app-whitelabel
+  namespace: production
+  annotations:
+    # Sem auto-ssl inicialmente para evitar problemas
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  # Sem seção TLS para evitar erros de certificado wildcard. 
+  # O cliente acessará via HTTP ou precisaremos de On-Demand SSL futuramente.
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: tudoonline-app
+            port:
+              number: 80

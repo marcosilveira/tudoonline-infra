@@ -55,6 +55,17 @@ pipeline {
         }
       }
     }
+    
+    stage('Build App Base') {
+      steps {
+        script {
+           // Imagem intermediária necessária para os builds de Nginx e PHP
+           sh """
+             docker build --network host -t local/build:latest -f goolhub-api/docker/build/Dockerfile .
+           """
+        }
+      }
+    }
 
     stage('Build Docker Images') {
       parallel {

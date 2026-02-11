@@ -148,6 +148,9 @@ spec:
           steps {
             container('kaniko') {
               script {
+                // Remover arquivos de cache problematicos antes do build
+                sh "rm -rf app/mercadopago/vendor/mercadopago/dx-php/.phpdoc || true"
+                
                 sh """
                   /kaniko/executor \
                     --context . \

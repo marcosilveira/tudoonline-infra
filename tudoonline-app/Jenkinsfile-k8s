@@ -15,6 +15,13 @@ spec:
     volumeMounts:
     - name: workspace-volume
       mountPath: /home/jenkins/agent
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "500m"
+      limits:
+        memory: "1Gi"
+        cpu: "1"
   # Container dedicado para build do Nginx
   - name: kaniko-nginx
     image: gcr.io/kaniko-project/executor:v1.14.0-debug
@@ -26,6 +33,13 @@ spec:
       mountPath: /home/jenkins/agent
     - name: ghcr-secret
       mountPath: /kaniko/.docker
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "2"
   # Container dedicado para build do PHP
   - name: kaniko-php
     image: gcr.io/kaniko-project/executor:v1.14.0-debug
@@ -37,6 +51,13 @@ spec:
       mountPath: /home/jenkins/agent
     - name: ghcr-secret
       mountPath: /kaniko/.docker
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "1"
+      limits:
+        memory: "4Gi"
+        cpu: "2"
   - name: kubectl
     image: bitnami/kubectl:latest
     command:
@@ -45,6 +66,13 @@ spec:
     volumeMounts:
     - name: workspace-volume
       mountPath: /home/jenkins/agent
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
   volumes:
   - name: workspace-volume
     emptyDir:
@@ -183,16 +211,16 @@ spec:
         container('kubectl') {
           script {
             sh """
-              # Aplicar manifestos Kubernetes da pasta de infraestrutura
+              echo "Applying Kubernetes manifests..."
               kubectl apply -f tudoonline-app/k8s/ -n ${NAMESPACE}
               
-              # Atualizar imagens no deployment
+              echo "Updating deployment images..."
               kubectl set image deployment/${APP_NAME} \
                 nginx=${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} \
                 php=${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} \
                 -n ${NAMESPACE}
                 
-              # Aguardar rollout
+              echo "Waiting for rollout..."
               kubectl rollout status deployment/${APP_NAME} -n ${NAMESPACE} --timeout=10m
             """
           }

@@ -1,14 +1,5 @@
-FROM alpine:3.17 AS copy_files
-
-# Add Application
-COPY --chown=1000:1000 --chmod=664 app/ /app/
-
-# Configure files permissions
-RUN set -ex && \
-    find /app/ -type d -exec chmod 775 {} \;
-
-### APP Image ###
 FROM alpine:3.17
+
 LABEL maintainer="Ganex <suporte@ganex.com.br>"
 
 # Arguments
@@ -28,33 +19,22 @@ ENV LANG="pt_BR.UTF-8" \
 RUN addgroup -g $GROUP_GID -S $GROUP_NAME && \
     adduser -u $USER_UID -D -S -h $USER_HOME -s /sbin/nologin -G $GROUP_NAME $USER_NAME
 
-# Install softwares
-RUN set -ex \
+# Install softwares and Configure Logs/Permissions
+RUN set -ex && \
     apk update -qq && \
     apk add tzdata nginx && \
-    rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/*
-
-# Create app diretory and set permissions
-RUN set -ex && \
+    rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* && \
     mkdir -p /app/ && \
-    chown -R 1000:1000 /app/ && \
-    find /app/ -type f -exec chmod 664 {} \; && \
-    find /app/ -type d -exec chmod 775 {} \; && \
     mkdir -p /var/www/html && \
-    ln -s /app/ /var/www/html/
-
-# Add Application
-COPY --from=0 /app/ /app/
-
-# Forward logs to docker
-RUN set -ex && \
+    ln -s /app/ /var/www/html/ && \
     ln -sf /dev/stdout /var/log/nginx/access.log && \
-    ln -sf /dev/stderr /var/log/nginx/error.log
-
-# Configure correct permissions to user
-RUN set -ex && \
+    ln -sf /dev/stderr /var/log/nginx/error.log && \
     chown -R $USER_NAME:$GROUP_NAME /var/lib/nginx/ && \
     chown -R $USER_NAME:$GROUP_NAME /var/log/nginx
+
+# Add Application (Last step to maximize cache of previous layers)
+# COPY --chmod is supported by Kaniko >= 1.0.0
+COPY --chown=1000:1000 --chmod=775 app/ /app/
 
 # Workdir
 WORKDIR $USER_HOME

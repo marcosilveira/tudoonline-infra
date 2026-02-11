@@ -1,14 +1,5 @@
-FROM alpine:3.17 AS copy_files
-
-# Add Application
-COPY --chown=1000:1000 --chmod=664 app/ /app/
-
-# Configure files permissions
-RUN set -ex && \
-    find /app/ -type d -exec chmod 775 {} \;
-
-### APP Image ###
 FROM alpine:3.15
+
 LABEL maintainer="Ganex <suporte@ganex.com.br>"
 
 # Arguments
@@ -35,54 +26,47 @@ RUN addgroup -g $GROUP_GID -S $GROUP_NAME && \
     adduser -u $USER_UID -D -S -h $USER_HOME -s /sbin/nologin -G $GROUP_NAME $USER_NAME
 
 # Install softwares
-RUN set -ex \
+RUN set -ex && \
     apk update -qq && \
     # Install curl specific version to application support uri with white spaces
     apk add 'libcurl<7.68' 'curl<7.68' --repository=http://dl-cdn.alpinelinux.org/alpine/v3.10/main && \
     apk add tzdata ca-certificates $APPS $PHP_EXTENSIONS && \
-    rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/* 
-
-# Install supercronic
-RUN curl -fsSLO "$SUPERCRONIC_URL" \
-    && echo "${SUPERCRONIC_SHA1SUM}  ${SUPERCRONIC}" | sha1sum -c - \
-    && chmod +x "$SUPERCRONIC" \
-    && mv "$SUPERCRONIC" "/usr/local/bin/${SUPERCRONIC}" \
-    && ln -s "/usr/local/bin/${SUPERCRONIC}" /usr/local/bin/supercronic
-
-# Install New Relic Agent
-RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEW_RELIC_AGENT_VERSION}/newrelic-php5-${NEW_RELIC_AGENT_VERSION}-linux-musl.tar.gz" | tar -C /tmp -zx \
-    && export NR_INSTALL_USE_CP_NOT_LN=1 \
-    && export NR_INSTALL_SILENT=1 \
-    && /tmp/newrelic-php5-*/newrelic-install install \
-    && mkdir -p /var/log/newrelic \
-    && touch /var/log/newrelic/newrelic-daemon.log \
-    && chown -R $USER_UID:$GROUP_GID /var/log/newrelic/ \
-    && ln -sf /dev/stderr /var/log/newrelic/newrelic-daemon.log \
-    && rm -rf /tmp/newrelic-php5-* /tmp/nrinstall*
-
-# Install Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Forward logs and configure permissions
-RUN set -ex && \
+    # Install supercronic
+    curl -fsSLO "$SUPERCRONIC_URL" && \
+    echo "${SUPERCRONIC_SHA1SUM}  ${SUPERCRONIC}" | sha1sum -c - && \
+    chmod +x "$SUPERCRONIC" && \
+    mv "$SUPERCRONIC" "/usr/local/bin/${SUPERCRONIC}" && \
+    ln -s "/usr/local/bin/${SUPERCRONIC}" /usr/local/bin/supercronic && \
+    # Install New Relic Agent
+    curl -L "https://download.newrelic.com/php_agent/archive/${NEW_RELIC_AGENT_VERSION}/newrelic-php5-${NEW_RELIC_AGENT_VERSION}-linux-musl.tar.gz" | tar -C /tmp -zx && \
+    export NR_INSTALL_USE_CP_NOT_LN=1 && \
+    export NR_INSTALL_SILENT=1 && \
+    /tmp/newrelic-php5-*/newrelic-install install && \
+    mkdir -p /var/log/newrelic && \
+    touch /var/log/newrelic/newrelic-daemon.log && \
+    chown -R $USER_UID:$GROUP_GID /var/log/newrelic/ && \
+    ln -sf /dev/stderr /var/log/newrelic/newrelic-daemon.log && \
+    rm -rf /tmp/newrelic-php5-* /tmp/nrinstall* && \
+    # Install Composer
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
+    # Configure logs and permissions
     ln -sf /dev/stderr /var/log/php7/error.log && \
     chown -R $USER_UID:$GROUP_GID /etc/php7/ && \
     chown -R $USER_UID:$GROUP_GID /var/log/php7/ && \
     mkdir -p /var/lib/php/session/ && \
     chown -R $USER_UID:$GROUP_GID /var/lib/php/session && \
-    chmod 770 /var/lib/php/session/
-
-# Create app diretory and set permissions
-RUN set -ex && \
+    chmod 770 /var/lib/php/session/ && \
+    # Create app directory structure
     mkdir -p $USER_HOME && \
     chown -R $USER_UID:$GROUP_GID $USER_HOME && \
-    find $USER_HOME -type f -exec chmod 664 {} \; && \
-    find $USER_HOME -type d -exec chmod 775 {} \; && \
     mkdir -p /var/www/html && \
-    ln -s $USER_HOME /var/www/html/
+    ln -s $USER_HOME /var/www/html/ && \
+    # Clean up
+    rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
 
-# Add Application
-COPY --from=0 /app/ /app/
+# Add Application (Copy + Permissions in one go)
+# This avoids a massive snapshot
+COPY --chown=1000:1000 --chmod=775 app/ /app/
 
 # Workdir
 WORKDIR $USER_HOME

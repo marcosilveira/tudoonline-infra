@@ -35,8 +35,8 @@ spec:
       mountPath: /kaniko/.docker
     resources:
       requests:
-        memory: "1Gi"
-        cpu: "500m"
+        memory: "2Gi"
+        cpu: "1"
       limits:
         memory: "4Gi"
         cpu: "2"
@@ -53,11 +53,11 @@ spec:
       mountPath: /kaniko/.docker
     resources:
       requests:
-        memory: "1Gi"
-        cpu: "1"
-      limits:
         memory: "4Gi"
         cpu: "2"
+      limits:
+        memory: "6Gi"
+        cpu: "4"
   # Container genérico para rodar kubectl via download
   - name: kubectl
     image: alpine:3.18
@@ -169,37 +169,41 @@ spec:
       }
     }
 
-    stage('Build Nginx (Kaniko)') {
-      steps {
-        container('kaniko-nginx') {
-          script {
-            sh """
-              /kaniko/executor \
-                --context . \
-                --dockerfile ./tudoonline-app/docker/nginx/Dockerfile \
-                --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} \
-                --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:latest \
-                --cache=true \
-                --compressed-caching=false
-            """
+    stage('Build Docker Images (Kaniko)') {
+      parallel {
+        stage('Build Nginx') {
+          steps {
+            container('kaniko-nginx') {
+              script {
+                sh """
+                  /kaniko/executor \
+                    --context . \
+                    --dockerfile ./tudoonline-app/docker/nginx/Dockerfile \
+                    --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} \
+                    --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:latest \
+                    --cache=true \
+                    --compressed-caching=false
+                """
+              }
+            }
           }
         }
-      }
-    }
-    
-    stage('Build PHP (Kaniko)') {
-      steps {
-        container('kaniko-php') {
-          script {
-            sh """
-              /kaniko/executor \
-                --context . \
-                --dockerfile ./tudoonline-app/docker/php/Dockerfile \
-                --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} \
-                --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:latest \
-                --cache=true \
-                --compressed-caching=false
-            """
+        
+        stage('Build PHP') {
+          steps {
+            container('kaniko-php') {
+              script {
+                sh """
+                  /kaniko/executor \
+                    --context . \
+                    --dockerfile ./tudoonline-app/docker/php/Dockerfile \
+                    --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} \
+                    --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:latest \
+                    --cache=true \
+                    --compressed-caching=false
+                """
+              }
+            }
           }
         }
       }
@@ -230,7 +234,6 @@ spec:
                 -n ${NAMESPACE}
                 
               echo "Waiting for rollout..."
-              # Timeout aumentado para 20m para compensar lentidão do cluster
               if ! kubectl rollout status deployment/${APP_NAME} -n ${NAMESPACE} --timeout=20m; then
                   echo "Rollout failed or timed out. Debugging info:"
                   kubectl get pods -n ${NAMESPACE}

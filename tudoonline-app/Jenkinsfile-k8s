@@ -168,39 +168,36 @@ spec:
       }
     }
 
-    stage('Build & Push Docker Images (Kaniko)') {
-      parallel {
-        stage('Build Nginx') {
-          steps {
-            container('kaniko-nginx') {
-              script {
-                sh """
-                  /kaniko/executor \
-                    --context . \
-                    --dockerfile ./tudoonline-app/docker/nginx/Dockerfile \
-                    --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} \
-                    --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:latest \
-                    --cache=true
-                """
-              }
-            }
+    stage('Build Nginx (Kaniko)') {
+      steps {
+        container('kaniko-nginx') {
+          script {
+            sh """
+              /kaniko/executor \
+                --context . \
+                --dockerfile ./tudoonline-app/docker/nginx/Dockerfile \
+                --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} \
+                --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:latest \
+                --cache=true
+            """
           }
         }
-        
-        stage('Build PHP') {
-          steps {
-            container('kaniko-php') {
-              script {
-                sh """
-                  /kaniko/executor \
-                    --context . \
-                    --dockerfile ./tudoonline-app/docker/php/Dockerfile \
-                    --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} \
-                    --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:latest \
-                    --cache=true
-                """
-              }
-            }
+      }
+    }
+    
+    stage('Build PHP (Kaniko)') {
+      steps {
+        container('kaniko-php') {
+          script {
+            sh """
+              /kaniko/executor \
+                --context . \
+                --dockerfile ./tudoonline-app/docker/php/Dockerfile \
+                --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} \
+                --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:latest \
+                --cache=true \
+                --compressed-caching=false
+            """
           }
         }
       }

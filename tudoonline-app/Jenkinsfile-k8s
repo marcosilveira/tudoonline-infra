@@ -131,14 +131,16 @@ spec:
           steps {
             container('kaniko') {
               script {
-                sh """
-                  /kaniko/executor \
-                    --context "dir://\$(pwd)" \
-                    --dockerfile "dir://\$(pwd)/tudoonline-app/docker/nginx/Dockerfile" \
-                    --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} \
-                    --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:latest \
-                    --cache=true
-                """
+                dir('app') {
+                  sh """
+                    /kaniko/executor \
+                      --context "dir://\$(pwd)" \
+                      --dockerfile "dir://\$(pwd)/tudoonline-app/docker/nginx/Dockerfile" \
+                      --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} \
+                      --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:latest \
+                      --cache=true
+                  """
+                }
               }
             }
           }
@@ -148,14 +150,16 @@ spec:
           steps {
             container('kaniko') {
               script {
-                sh """
-                  /kaniko/executor \
-                    --context "dir://\$(pwd)" \
-                    --dockerfile "dir://\$(pwd)/tudoonline-app/docker/php/Dockerfile" \
-                    --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} \
-                    --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:latest \
-                    --cache=true
-                """
+                dir('app') {
+                  sh """
+                    /kaniko/executor \
+                      --context "dir://\$(pwd)" \
+                      --dockerfile "dir://\$(pwd)/tudoonline-app/docker/php/Dockerfile" \
+                      --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} \
+                      --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:latest \
+                      --cache=true
+                  """
+                }
               }
             }
           }

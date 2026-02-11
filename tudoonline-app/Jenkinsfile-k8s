@@ -230,7 +230,13 @@ spec:
                 -n ${NAMESPACE}
                 
               echo "Waiting for rollout..."
-              kubectl rollout status deployment/${APP_NAME} -n ${NAMESPACE} --timeout=10m
+              # Timeout aumentado para 20m para compensar lentidão do cluster
+              if ! kubectl rollout status deployment/${APP_NAME} -n ${NAMESPACE} --timeout=20m; then
+                  echo "Rollout failed or timed out. Debugging info:"
+                  kubectl get pods -n ${NAMESPACE}
+                  kubectl describe deployment/${APP_NAME} -n ${NAMESPACE}
+                  exit 1
+              fi
             """
           }
         }

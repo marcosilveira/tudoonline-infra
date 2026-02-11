@@ -1,0 +1,165 @@
+#!/usr/bin/env groovy
+pipeline {
+  environment { 
+    DOCKER_REGISTRY = 'ghcr.io'
+    GITHUB_ORG = 'marcosilveira'
+    APP_NAME = 'tudoonline-app'
+    NAMESPACE = 'production'
+    GITHUB_CREDENTIAL_ID = '7695161b-5a4b-49a9-a5a9-86c1b6f2bf1c'
+    // App Repo
+    APP_REPO_URL = 'https://github.com/tudoonline/legadogool.git'
+    APP_BRANCH = 'master'
+    GIT_CREDENTIAL_ID = '7695161b-5a4b-49a9-a5a9-86c1b6f2bf1c'
+    // Secrets
+    GIT_CRYPT_KEY = 'tudoonline-legadogool-secretkey-git-crypt'
+  } 
+
+  options { 
+    timeout(time: 60, unit: 'MINUTES') 
+  } 
+
+  triggers {
+    GenericTrigger(
+      genericVariables: [
+        [key: 'ref', value: '$.ref']
+      ],
+      token: 'tudoonline-app-token',
+      causeString: 'Triggered by GitHub Webhook',
+      printContributedVariables: true,
+      printPostContent: true,
+      regexpFilterText: '$ref',
+      regexpFilterExpression: 'refs/heads/master'
+    )
+  }
+
+  agent any
+
+  stages {
+    stage('Checkout App Code') {
+      steps {
+        script {
+           echo "Cloning Application Code..."
+           dir('app') {
+             git branch: APP_BRANCH, url: APP_REPO_URL, credentialsId: GIT_CREDENTIAL_ID
+           }
+        }
+      }
+    }
+
+    stage('Decrypt Config Files') {
+      steps {
+        script {
+          // Precisamos descriptografar o código da aplicação (pasta app)
+          dir('app') {
+            withCredentials([file(credentialsId: "${GIT_CRYPT_KEY}", variable: 'DECRYPT_KEY')]) {
+              sh """
+                # Descriptografar arquivos se necessário (verificar se repo usa git-crypt)
+                if [ -d ".git-crypt" ]; then
+                   git-crypt unlock "\$DECRYPT_KEY"
+                   echo "Repositório descriptografado."
+                else
+                   echo "git-crypt não detectado no repositório."
+                fi
+                
+                # Configurar config.php (legado)
+                if [ "${NAMESPACE}" = "production" ] && [ -f ".env_production" ]; then
+                  mv .env_production config.php
+                elif [ "${NAMESPACE}" = "staging" ] && [ -f ".env_staging" ]; then
+                  mv .env_staging config.php
+                fi
+              """
+            }
+          }
+        }
+      }
+    }
+
+    stage('Login to GitHub Container Registry') {
+      steps {
+        script {
+          withCredentials([usernamePassword(credentialsId: "${GITHUB_CREDENTIAL_ID}", usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
+            sh """
+              echo \$GITHUB_TOKEN | docker login ${DOCKER_REGISTRY} -u \$GITHUB_USER --password-stdin
+            """
+          }
+        }
+      }
+    }
+
+    stage('Build Docker Images') {
+      parallel {
+        stage('Build Nginx') {
+          steps {
+            script {
+              sh """
+                docker build --network host -t ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} -f tudoonline-app/docker/nginx/Dockerfile .
+                docker tag ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:latest
+              """
+            }
+          }
+        }
+        
+        stage('Build PHP') {
+          steps {
+            script {
+              sh """
+                docker build --network host -t ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} -f tudoonline-app/docker/php/Dockerfile .
+                docker tag ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:latest
+              """
+            }
+          }
+        }
+      }
+    }
+
+    stage('Push Images') {
+      steps {
+        script {
+          sh """
+            docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER}
+            docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:latest
+            docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER}
+            docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:latest
+          """
+        }
+      }
+    }
+
+    stage('Deploy to Kubernetes') {
+      steps {
+        script {
+          sh """
+            # Aplicar manifestos Kubernetes da pasta de infraestrutura
+            kubectl apply -f tudoonline-app/k8s/ -n ${NAMESPACE}
+            
+            # Atualizar imagens no deployment
+            kubectl set image deployment/${APP_NAME} \
+              nginx=${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} \
+              php=${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} \
+              -n ${NAMESPACE}
+              
+            # Aguardar rollout
+            kubectl rollout status deployment/${APP_NAME} -n ${NAMESPACE} --timeout=10m
+          """
+        }
+      }
+    }
+  }
+  
+  post {
+    success {
+      echo "Deploy realizado com sucesso! 🚀"
+    }
+    
+    failure {
+      echo "Deploy falhou! ❌"
+    }
+    
+    always {
+      sh """
+        docker rmi ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} || true
+        docker rmi ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} || true
+      """
+    }
+  }
+}

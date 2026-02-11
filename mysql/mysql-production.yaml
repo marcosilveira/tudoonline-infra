@@ -36,8 +36,8 @@ spec:
         image: mysql:8.0
         env:
         - name: MYSQL_ROOT_PASSWORD
-          value: "STHVJWHrvGc91MiY1ya9DDFMA6v0uGvX"
-          # value: "ncpfxmbOTXqTflm0ieHI1174OJMZkl9A" root rds
+          # value: "STHVJWHrvGc91MiY1ya9DDFMA6v0uGvX"
+          value: "ncpfxmbOTXqTflm0ieHI1174OJMZkl9A" #root rds
         - name: MYSQL_DATABASE
           value: "tudoonline"
         ports:

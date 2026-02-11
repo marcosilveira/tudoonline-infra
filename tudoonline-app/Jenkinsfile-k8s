@@ -15,7 +15,19 @@ spec:
     volumeMounts:
     - name: workspace-volume
       mountPath: /home/jenkins/agent
-  - name: kaniko
+  # Container dedicado para build do Nginx
+  - name: kaniko-nginx
+    image: gcr.io/kaniko-project/executor:v1.14.0-debug
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - name: workspace-volume
+      mountPath: /home/jenkins/agent
+    - name: ghcr-secret
+      mountPath: /kaniko/.docker
+  # Container dedicado para build do PHP
+  - name: kaniko-php
     image: gcr.io/kaniko-project/executor:v1.14.0-debug
     command:
     - cat
@@ -94,7 +106,7 @@ spec:
       }
     }
 
-    stage('Decrypt Config Files') {
+    stage('Decrypt & Prepare') {
       steps {
         container('jnlp') {
           script {
@@ -120,6 +132,9 @@ spec:
                 """
               }
             }
+            // Limpeza sequencial segura antes dos builds paralelos
+            sh "rm -rf app/mercadopago/vendor/mercadopago/dx-php/.phpdoc || true"
+            echo "Limpeza de arquivos temporários concluída."
           }
         }
       }
@@ -129,7 +144,7 @@ spec:
       parallel {
         stage('Build Nginx') {
           steps {
-            container('kaniko') {
+            container('kaniko-nginx') {
               script {
                 sh """
                   /kaniko/executor \
@@ -146,11 +161,8 @@ spec:
         
         stage('Build PHP') {
           steps {
-            container('kaniko') {
+            container('kaniko-php') {
               script {
-                // Remover arquivos de cache problematicos antes do build
-                sh "rm -rf app/mercadopago/vendor/mercadopago/dx-php/.phpdoc || true"
-                
                 sh """
                   /kaniko/executor \
                     --context . \

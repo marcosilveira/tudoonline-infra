@@ -139,31 +139,25 @@ spec:
       steps {
         container('jnlp') {
           script {
-            dir('app') {
-              withCredentials([file(credentialsId: "${GIT_CRYPT_KEY}", variable: 'DECRYPT_KEY')]) {
-                sh """
-                  if [ -d ".git-crypt" ]; then
-                     if command -v git-crypt &> /dev/null; then
-                         git-crypt unlock "\$DECRYPT_KEY"
-                         echo "Repositório descriptografado."
-                     else
-                         echo "WARN: git-crypt nao encontrado. Pulando descriptografia."
-                     fi
-                  else
-                     echo "git-crypt não detectado no repositório."
-                  fi
-                  
-                  if [ "${NAMESPACE}" = "production" ] && [ -f ".env_production" ]; then
-                    mv .env_production config.php
-                  elif [ "${NAMESPACE}" = "staging" ] && [ -f ".env_staging" ]; then
-                    mv .env_staging config.php
-                  fi
-                """
-              }
-            }
+            // Copiar arquivo de configuração criptografado da infra para o app
+            // O Jenkins já desencriptou o repo `tudoonline-infra` no checkout inicial
+            // se a credencial git-crypt estiver configurada globalmente ou no checkout.
+            // Se não, precisamos garantir o unlock aqui, mas geralmente o checkout SCM já resolve se configurado.
+            // Para segurança, vamos garantir que o arquivo existe.
+            
+            sh """
+              if [ -f "tudoonline-app/config/config.php" ]; then
+                  echo "Copiando config.php da infra..."
+                  cp tudoonline-app/config/config.php app/config.php
+              else
+                  echo "ERRO: tudoonline-app/config/config.php não encontrado na infra!"
+                  exit 1
+              fi
+            """
+            
             // Limpeza sequencial segura antes dos builds paralelos
             sh "rm -rf app/mercadopago/vendor/mercadopago/dx-php/.phpdoc || true"
-            echo "Limpeza de arquivos temporários concluída."
+            echo "Limpeza e Configuração concluída."
           }
         }
       }

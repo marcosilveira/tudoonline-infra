@@ -15,19 +15,16 @@ spec:
     volumeMounts:
     - name: workspace-volume
       mountPath: /home/jenkins/agent
-  - name: docker
-    image: docker:24.0.5-cli
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:v1.14.0-debug
     command:
     - cat
     tty: true
-    securityContext:
-      privileged: true
-      runAsUser: 0
     volumeMounts:
     - name: workspace-volume
       mountPath: /home/jenkins/agent
-    - name: docker-sock
-      mountPath: /var/run/docker.sock
+    - name: ghcr-secret
+      mountPath: /kaniko/.docker
   - name: kubectl
     image: bitnami/kubectl:latest
     command:
@@ -41,9 +38,12 @@ spec:
     emptyDir:
       medium: Memory
       sizeLimit: 4Gi
-  - name: docker-sock
-    hostPath:
-      path: /var/run/docker.sock
+  - name: ghcr-secret
+    secret:
+      secretName: ghcr-secret
+      items:
+        - key: .dockerconfigjson
+          path: config.json
 """
     }
   }
@@ -102,12 +102,11 @@ spec:
               withCredentials([file(credentialsId: "${GIT_CRYPT_KEY}", variable: 'DECRYPT_KEY')]) {
                 sh """
                   if [ -d ".git-crypt" ]; then
-                     # Tenta usar git-crypt se instalado, senao avisa (a imagem jnlp pode nao ter)
                      if command -v git-crypt &> /dev/null; then
                          git-crypt unlock "\$DECRYPT_KEY"
                          echo "Repositório descriptografado."
                      else
-                         echo "WARN: git-crypt nao encontrado no container jnlp. Pulando descriptografia."
+                         echo "WARN: git-crypt nao encontrado. Pulando descriptografia."
                      fi
                   else
                      echo "git-crypt não detectado no repositório."
@@ -126,29 +125,21 @@ spec:
       }
     }
 
-    stage('Login to GitHub Container Registry') {
-      steps {
-        container('docker') {
-          script {
-            withCredentials([usernamePassword(credentialsId: "${GITHUB_CREDENTIAL_ID}", usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
-              sh """
-                echo \$GITHUB_TOKEN | docker login ${DOCKER_REGISTRY} -u \$GITHUB_USER --password-stdin
-              """
-            }
-          }
-        }
-      }
-    }
+    // Stage de Login removido pois Kaniko usa config.json montado
 
-    stage('Build Docker Images') {
+    stage('Build & Push Docker Images (Kaniko)') {
       parallel {
         stage('Build Nginx') {
           steps {
-            container('docker') {
+            container('kaniko') {
               script {
                 sh """
-                  docker build --network host -t ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} -f tudoonline-app/docker/nginx/Dockerfile .
-                  docker tag ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:latest
+                  /kaniko/executor \
+                    --context dir://\$(pwd) \
+                    --dockerfile dir://\$(pwd)/tudoonline-app/docker/nginx/Dockerfile \
+                    --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} \
+                    --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:latest \
+                    --cache=true
                 """
               }
             }
@@ -157,29 +148,18 @@ spec:
         
         stage('Build PHP') {
           steps {
-            container('docker') {
+            container('kaniko') {
               script {
                 sh """
-                  docker build --network host -t ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} -f tudoonline-app/docker/php/Dockerfile .
-                  docker tag ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:latest
+                  /kaniko/executor \
+                    --context dir://\$(pwd) \
+                    --dockerfile dir://\$(pwd)/tudoonline-app/docker/php/Dockerfile \
+                    --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} \
+                    --destination ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:latest \
+                    --cache=true
                 """
               }
             }
-          }
-        }
-      }
-    }
-
-    stage('Push Images') {
-      steps {
-        container('docker') {
-          script {
-            sh """
-              docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER}
-              docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:latest
-              docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER}
-              docker push ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:latest
-            """
           }
         }
       }
@@ -212,18 +192,8 @@ spec:
     success {
       echo "Deploy realizado com sucesso! 🚀"
     }
-    
     failure {
       echo "Deploy falhou! ❌"
-    }
-    
-    always {
-      container('docker') {
-        sh """
-          docker rmi ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-nginx:${BUILD_NUMBER} || true
-          docker rmi ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}-php:${BUILD_NUMBER} || true
-        """
-      }
     }
   }
 }

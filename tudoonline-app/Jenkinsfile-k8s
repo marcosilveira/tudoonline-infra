@@ -11,7 +11,7 @@ metadata:
 spec:
   containers:
   - name: jnlp
-    image: jenkins/inbound-agent:4.11-1-jdk11
+    image: jenkins/inbound-agent:latest
     volumeMounts:
     - name: workspace-volume
       mountPath: /home/jenkins/agent

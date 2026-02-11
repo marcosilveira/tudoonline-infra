@@ -58,8 +58,9 @@ spec:
       limits:
         memory: "4Gi"
         cpu: "2"
+  # Container genérico para rodar kubectl via download
   - name: kubectl
-    image: dtzar/helm-kubectl:1.30.0
+    image: alpine:3.18
     command:
     - cat
     tty: true
@@ -68,10 +69,10 @@ spec:
       mountPath: /home/jenkins/agent
     resources:
       requests:
-        memory: "256Mi"
-        cpu: "200m"
+        memory: "128Mi"
+        cpu: "100m"
       limits:
-        memory: "512Mi"
+        memory: "256Mi"
         cpu: "500m"
   volumes:
   - name: workspace-volume
@@ -209,10 +210,17 @@ spec:
         container('kubectl') {
           script {
             sh """
-              echo "Applying Kubernetes manifests..."
-              # Garantir que o kubectl conecta ao cluster correto (in-cluster config)
-              kubectl version --short
+              echo "Installing kubectl dependencies..."
+              apk add --no-cache curl
               
+              echo "Downloading kubectl..."
+              curl -LO "https://dl.k8s.io/release/\$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+              chmod +x kubectl
+              mv kubectl /usr/local/bin/
+              
+              kubectl version --client
+              
+              echo "Applying Kubernetes manifests..."
               kubectl apply -f tudoonline-app/k8s/ -n ${NAMESPACE}
               
               echo "Updating deployment images..."

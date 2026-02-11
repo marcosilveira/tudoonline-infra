@@ -59,7 +59,7 @@ spec:
         memory: "4Gi"
         cpu: "2"
   - name: kubectl
-    image: bitnami/kubectl:latest
+    image: bitnami/kubectl:1.30
     command:
     - cat
     tty: true
@@ -68,10 +68,10 @@ spec:
       mountPath: /home/jenkins/agent
     resources:
       requests:
-        memory: "128Mi"
-        cpu: "100m"
-      limits:
         memory: "256Mi"
+        cpu: "200m"
+      limits:
+        memory: "512Mi"
         cpu: "500m"
   volumes:
   - name: workspace-volume
@@ -210,6 +210,9 @@ spec:
           script {
             sh """
               echo "Applying Kubernetes manifests..."
+              # Garantir que o kubectl conecta ao cluster correto (in-cluster config)
+              kubectl version --short
+              
               kubectl apply -f tudoonline-app/k8s/ -n ${NAMESPACE}
               
               echo "Updating deployment images..."

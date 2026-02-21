@@ -56,9 +56,10 @@ spec:
         args:
         - "--innodb-buffer-pool-size=14G"
         - "--max-connections=1000"
-        - "--innodb-log-file-size=1G"
+        - "--innodb-redo-log-capacity=2147483648"
         - "--innodb-flush-log-at-trx-commit=2"
         - "--replica-skip-errors=1062,1032"
+        - "--binlog-expire-logs-seconds=604800"
   volumeClaimTemplates:
   - metadata:
       name: data

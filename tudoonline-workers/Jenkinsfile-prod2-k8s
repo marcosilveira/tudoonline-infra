@@ -63,15 +63,6 @@ pipeline {
           // O build roda na raiz do workspace (infra). O Dockerfile está em tudoonline-workers/docker/worker/Dockerfile
           // O contexto (.) contém a pasta 'app' que baixamos do repo da aplicação
           sh """
-            if [ -f "tudoonline-workers/config/config.php" ]; then
-                echo "Copiando config.php da infra..."
-                mkdir -p app/config
-                cp -f tudoonline-workers/config/config.php app/config.php || true
-                cp -f tudoonline-workers/config/config.php app/config/config.php || true
-            else
-                echo "AVISO: tudoonline-workers/config/config.php não encontrado!"
-            fi
-            
             docker build --network host -t ${DOCKER_IMAGE}:${DOCKER_TAG} -f tudoonline-workers/docker/worker/Dockerfile.prod2 .
           """
         }

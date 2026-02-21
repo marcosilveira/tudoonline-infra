@@ -58,6 +58,7 @@ spec:
         - "--max-connections=1000"
         - "--innodb-log-file-size=1G"
         - "--innodb-flush-log-at-trx-commit=2"
+        - "--replica-skip-errors=1062,1032"
   volumeClaimTemplates:
   - metadata:
       name: data

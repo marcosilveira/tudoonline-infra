@@ -112,6 +112,7 @@ data:
     session.save_handler=redis
     session.save_path='tcp://redis-master.production.svc.cluster.local:6379?auth=uipeBxvOV18JcFNxcuFC9Wjp8sQV1yBt'
     session.gc_maxlifetime=86400
+    newrelic.enabled=0
     opcache.blacklist_filename=/etc/php.d/opcache*.blacklist
     opcache.enable=1
     opcache.interned_strings_buffer=16

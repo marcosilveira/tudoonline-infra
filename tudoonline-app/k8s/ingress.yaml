@@ -6,13 +6,14 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "Content-Security-Policy: upgrade-insecure-requests";
 spec:
   ingressClassName: nginx
   tls:
   - hosts:
     - goolhub.io
-    - app.goolhub.io
-    - app.hubai.io
+    - www.goolhub.io
     secretName: tudoonline-app-official-tls
   rules:
   - host: goolhub.io
@@ -25,7 +26,7 @@ spec:
             name: tudoonline-app
             port:
               number: 80
-  - host: app.goolhub.io
+  - host: www.goolhub.io
     http:
       paths:
       - path: /
@@ -35,13 +36,4 @@ spec:
             name: tudoonline-app
             port:
               number: 80
-  - host: app.hubai.io
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: tudoonline-app
-            port:
-              number: 80
+

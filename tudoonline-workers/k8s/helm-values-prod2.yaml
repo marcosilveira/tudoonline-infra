@@ -4,6 +4,10 @@ ssh:
   enabled: true
   nodePort: 30022
 
+# Configuração HTTP Built-in (Apenas Prod2 para o crontab local apontar pra ela)
+httpService:
+  enabled: true
+
 worker:
   defaults:
     image: ghcr.io/marcosilveira/tudoonline-workers:prod2
@@ -30,13 +34,15 @@ worker:
     # Worker Sentinela para Crons Manuais (Nunca morre, não depende de fila)
     # Use este container para rodar 'crictl exec ...' via SSH
     - name: cron-runner
-      # Inicia o SSHD automaticamente (Instalação em Runtime devido a problemas de rede no Build)
-      command: ["/bin/sh", "-c", "apk update && apk add openssh && mkdir -p /root/.ssh && chmod 700 /root/.ssh && ssh-keygen -A && echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && echo 'root:tudoonline' | chpasswd && mkdir -p /run/sshd && /usr/sbin/sshd -D"]
+      # Inicia o SSHD automaticamente e o PHP built-in server na porta 80 em background
+      command: ["/bin/sh", "-c", "apk update && apk add openssh && mkdir -p /root/.ssh && chmod 700 /root/.ssh && ssh-keygen -A && echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && echo 'root:tudoonline' | chpasswd && mkdir -p /run/sshd && php -S 0.0.0.0:80 -t /app & /usr/sbin/sshd -D"]
       securityContext:
         runAsUser: 0
       ports:
         - containerPort: 22
           name: ssh
+        - containerPort: 80
+          name: http
       replicaCount: 1
       minReplicaCount: 1
       maxReplicaCount: 1

@@ -3,6 +3,9 @@ namespace: production
 ssh:
   enabled: false
 
+httpService:
+  enabled: false
+
 rabbitmq:
   host: "rabbitmq.production.svc.cluster.local"
   username: "admin"

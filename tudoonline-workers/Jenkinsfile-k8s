@@ -68,6 +68,8 @@ pipeline {
           // O build roda na raiz do workspace (infra). O Dockerfile está em tudoonline-workers/docker/worker/Dockerfile
           // O contexto (.) contém a pasta 'app' que acabamos de baixar.
           sh """
+            # Limpa qualquer rastro do build antigo persistido no workspace
+            rm -rf app/config
             docker build --network host -t ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${BUILD_NUMBER} -f tudoonline-workers/docker/worker/Dockerfile .
             docker tag ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${BUILD_NUMBER} ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:latest
           """

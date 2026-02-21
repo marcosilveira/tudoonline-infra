@@ -12,6 +12,7 @@ spec:
   - hosts:
     - goolhub.io
     - app.goolhub.io
+    - app.hubai.io
     secretName: tudoonline-app-official-tls
   rules:
   - host: goolhub.io
@@ -25,6 +26,16 @@ spec:
             port:
               number: 80
   - host: app.goolhub.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: tudoonline-app
+            port:
+              number: 80
+  - host: app.hubai.io
     http:
       paths:
       - path: /

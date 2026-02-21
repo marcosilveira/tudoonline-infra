@@ -6,5 +6,5 @@ metadata:
 data:
   config.php: |-
 {{ .Files.Get "config/config.php" | indent 4 }}
-  config_crons.php: |-
-{{ .Files.Get "config/config_crons.php" | indent 4 }}
+  config_cron.php: |-
+{{ .Files.Get "config/config_cron.php" | indent 4 }}

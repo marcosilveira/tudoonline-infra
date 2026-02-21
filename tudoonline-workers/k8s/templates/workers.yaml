@@ -68,8 +68,8 @@ spec:
           mountPath: /app/config.php
           subPath: config.php
         - name: app-config
-          mountPath: /app/crons/config_crons.php
-          subPath: config_crons.php
+          mountPath: /app/crons/config_cron.php
+          subPath: config_cron.php
         {{- range .persistence }}
         - name: {{ .name }}
           mountPath: {{ .mountPath }}
@@ -80,8 +80,8 @@ spec:
           mountPath: /app/config.php
           subPath: config.php
         - name: app-config
-          mountPath: /app/crons/config_crons.php
-          subPath: config_crons.php
+          mountPath: /app/crons/config_cron.php
+          subPath: config_cron.php
         {{- end }}
       {{- if .persistence }}
       volumes:

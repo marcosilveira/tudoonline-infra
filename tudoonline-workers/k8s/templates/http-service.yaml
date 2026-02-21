@@ -10,7 +10,7 @@ spec:
     - port: 80
       targetPort: 80
       name: http
-      nodePort: 30080
+      nodePort: 30081
   selector:
     # Seleciona exatamente o pod do cron-runner
     app: {{ .Values.worker.defaults.namePrefix }}cron-runner

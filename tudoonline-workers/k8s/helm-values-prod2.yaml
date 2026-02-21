@@ -35,7 +35,7 @@ worker:
     # Use este container para rodar 'crictl exec ...' via SSH
     - name: cron-runner
       # Inicia o SSHD automaticamente e o PHP built-in server na porta 80 em background
-      command: ["/bin/sh", "-c", "set -e; apk update; apk add openssh; mkdir -p /root/.ssh; chmod 700 /root/.ssh; ssh-keygen -A; echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config; echo 'root:tudoonline' | chpasswd; mkdir -p /run/sshd; php -S 0.0.0.0:80 -t /app & exec /usr/sbin/sshd -D"]
+      command: ["/bin/sh", "-c", "set -e; apk update; apk add openssh; mkdir -p /root/.ssh; chmod 700 /root/.ssh; ssh-keygen -A; echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config; echo 'root:tudoonline' | chpasswd; echo 'cd /app' >> /root/.profile; mkdir -p /run/sshd; php -S 0.0.0.0:80 -t /app & exec /usr/sbin/sshd -D"]
       securityContext:
         runAsUser: 0
       ports:

@@ -67,6 +67,9 @@ spec:
         - name: app-config
           mountPath: /app/config.php
           subPath: config.php
+        - name: app-config
+          mountPath: /app/crons/config_crons.php
+          subPath: config_crons.php
         {{- range .persistence }}
         - name: {{ .name }}
           mountPath: {{ .mountPath }}
@@ -76,6 +79,9 @@ spec:
         - name: app-config
           mountPath: /app/config.php
           subPath: config.php
+        - name: app-config
+          mountPath: /app/crons/config_crons.php
+          subPath: config_crons.php
         {{- end }}
       {{- if .persistence }}
       volumes:

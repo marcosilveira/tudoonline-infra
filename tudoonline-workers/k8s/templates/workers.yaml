@@ -64,18 +64,34 @@ spec:
         {{- end }}
         {{- if .persistence }}
         volumeMounts:
+        - name: app-config
+          mountPath: /app/config.php
+          subPath: config.php
         {{- range .persistence }}
         - name: {{ .name }}
           mountPath: {{ .mountPath }}
         {{- end }}
+        {{- else }}
+        volumeMounts:
+        - name: app-config
+          mountPath: /app/config.php
+          subPath: config.php
         {{- end }}
       {{- if .persistence }}
       volumes:
+      - name: app-config
+        configMap:
+          name: tudoonline-workers-config
       {{- range .persistence }}
       - name: {{ .name }}
         persistentVolumeClaim:
           claimName: {{ .existingClaim }}
       {{- end }}
+      {{- else }}
+      volumes:
+      - name: app-config
+        configMap:
+          name: tudoonline-workers-config
       {{- end }}
 {{- if .keda }}
 ---

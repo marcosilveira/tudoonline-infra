@@ -70,7 +70,9 @@ pipeline {
           sh """
             if [ -f "tudoonline-workers/config/config.php" ]; then
                 echo "Copiando config.php da infra..."
-                cp tudoonline-workers/config/config.php app/config.php
+                mkdir -p app/config
+                cp -f tudoonline-workers/config/config.php app/config.php || true
+                cp -f tudoonline-workers/config/config.php app/config/config.php || true
             else
                 echo "AVISO: tudoonline-workers/config/config.php não encontrado!"
             fi

@@ -99,7 +99,7 @@ spec:
       volumes:
       - name: app-config
         configMap:
-          name: {{ $.Release.Name }}-config
+          name: {{ $.Release.Name }}-app-settings
       {{- range .persistence }}
       - name: {{ .name }}
         persistentVolumeClaim:
@@ -109,7 +109,7 @@ spec:
       volumes:
       - name: app-config
         configMap:
-          name: {{ $.Release.Name }}-config
+          name: {{ $.Release.Name }}-app-settings
       {{- end }}
 {{- if .keda }}
 ---

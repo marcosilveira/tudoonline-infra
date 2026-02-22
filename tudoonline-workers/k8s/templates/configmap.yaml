@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-config
+  name: {{ .Release.Name }}-app-settings
   namespace: {{ .Values.namespace }}
 data:
   config.php: |-

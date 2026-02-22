@@ -21,12 +21,12 @@
 # For more information see the manual pages of crontab(5) and cron(8)
 # 
 # m h  dom mon dow   command
-# * * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/teste.php &>/dev/null
+# * * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/teste.php &>/dev/null
 
 #cad 1212
-#* * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/env_caixa_cad.php &>/dev/null
+#* * * * * /usr/bin/curl --silent https://goolhub.io/env_caixa_cad.php &>/dev/null
 
-45 * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/Sistema/esporadico/ajustar_cadastros_6663.php &>/dev/null
+#45 * * * * /usr/bin/curl --silent https://goolhub.io/Sistema/esporadico/ajustar_cadastros_6663.php &>/dev/null
 
 
 
@@ -41,18 +41,18 @@
 10 */2 * * *  /usr/bin/curl --silent https:///www.sistemagrupoonline.com.br/Meli/pooling_order.php &>/dev/null
 
 #Meli
-50 * * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Meli/envia_token.php &>/dev/null
-#* * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Meli/fila_callback.php &>/dev/null
+50 * * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/Meli/envia_token.php &>/dev/null
+#* * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Meli/fila_callback.php &>/dev/null
 * * * * *  /usr/bin/curl --silent https:///www.sistemagrupoonline.com.br/Meli/fila_callback.php &>/dev/null
 #*/2 * * * *  /usr/bin/curl --silent https://goolhub.io/Meli/atualiza_estoque.php &>/dev/null
 */2 * * * *  /usr/bin/flock -n /tmp/meli_atualiza_estoque.lock -c "/usr/bin/curl --silent https://goolhub.io/Meli/atualiza_estoque.php &>/dev/null"
 * * * * *  /usr/bin/flock -n /tmp/meli_atualiza_preco.lock -c "/usr/bin/curl --silent https://goolhub.io/Meli/atualiza_preco.php &>/dev/null"
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Meli/zerar-estoque.php &>/dev/null
-#*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Meli/atualiza_imagens.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Meli/envia_nota_meli.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Meli/get_order.php &>/dev/null
-*/15 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Meli/envia_etiqueta.php &>/dev/null
-*/30 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Meli/get_order_status.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Meli/zerar-estoque.php &>/dev/null
+#*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Meli/atualiza_imagens.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Meli/envia_nota_meli.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Meli/get_order.php &>/dev/null
+*/15 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Meli/envia_etiqueta.php &>/dev/null
+*/30 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Meli/get_order_status.php &>/dev/null
 
 
 #Bling V3
@@ -76,68 +76,68 @@
 
 
 #Shopee
-5 */2 * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Shopee/envia_token.php &>/dev/null
+5 */2 * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/Shopee/envia_token.php &>/dev/null
 5 2 * * * /usr/bin/curl --silent https:///www.sistemagrupoonline.com.br/Shopee/get-performance.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Shopee/fila_callback.php &>/dev/null
-0 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Shopee/ajusta-etiqueta.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Shopee/ajuste_rastreio_shopee.php &>/dev/null
-*/6 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Shopee/envia_fila_pedidos.php &>/dev/null
-1 */3 * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Shopee/envia_fila_pedidos.php?atu_ready=S &>/dev/null
-1 */6 * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Shopee/envia_fila_pedidos.php?atu_shiped=S &>/dev/null
-*/20 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Shopee/gerar_etiqueta_automatico.php?erros=S &>/dev/null
-#*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Shopee/atualiza_estoque.php &>/dev/null
-*/5 * * * *  /usr/bin/flock -n /tmp/shopee_atualiza_estoque.lock -c "/usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Shopee/atualiza_estoque.php &>/dev/null"
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Shopee/fila_callback.php &>/dev/null
+0 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Shopee/ajusta-etiqueta.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Shopee/ajuste_rastreio_shopee.php &>/dev/null
+*/6 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Shopee/envia_fila_pedidos.php &>/dev/null
+1 */3 * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Shopee/envia_fila_pedidos.php?atu_ready=S &>/dev/null
+1 */6 * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Shopee/envia_fila_pedidos.php?atu_shiped=S &>/dev/null
+*/20 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Shopee/gerar_etiqueta_automatico.php?erros=S &>/dev/null
+#*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Shopee/atualiza_estoque.php &>/dev/null
+*/5 * * * *  /usr/bin/flock -n /tmp/shopee_atualiza_estoque.lock -c "/usr/bin/curl --silent http://127.0.0.1:30081/crons/Shopee/atualiza_estoque.php &>/dev/null"
 */3 * * * *  /usr/bin/curl --silent https://goolhub.io/Shopee/atualiza_preco.php &>/dev/null
-#*/10 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Shopee/fila-upprod.php &>/dev/null
-#* * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Shopee/fila-cadprod.php &>/dev/null
-#*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Shopee/envia_nota.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Shopee/envia_nota_mod.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Shopee/atualiza_status_pedidos.php &>/dev/null
-5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Shopee/get-order-all.php &>/dev/null
-#5 5 * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Shopee/get-atributos.php &>/dev/null
-2 */4 * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Shopee/envia_fila_rastreio.php &>/dev/null
+#*/10 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Shopee/fila-upprod.php &>/dev/null
+#* * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Shopee/fila-cadprod.php &>/dev/null
+#*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Shopee/envia_nota.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Shopee/envia_nota_mod.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Shopee/atualiza_status_pedidos.php &>/dev/null
+5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Shopee/get-order-all.php &>/dev/null
+#5 5 * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Shopee/get-atributos.php &>/dev/null
+2 */4 * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Shopee/envia_fila_rastreio.php &>/dev/null
 
 #Magalu
-3 * * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Magalu/envia_token.php &>/dev/null
-*/5 * * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Magalu/process_callback.php &>/dev/null
-*/5 * * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Magalu/importa_pedidos.php &>/dev/null
-*/5 * * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Magalu/envia_nota.php &>/dev/null
-*/30 * * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Magalu/gerar_etiqueta_automatico.php &>/dev/null
-*/5 * * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Magalu/atualiza_estoque.php &>/dev/null
+3 * * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/Magalu/envia_token.php &>/dev/null
+*/5 * * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/Magalu/process_callback.php &>/dev/null
+*/5 * * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/Magalu/importa_pedidos.php &>/dev/null
+*/5 * * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/Magalu/envia_nota.php &>/dev/null
+*/30 * * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/Magalu/gerar_etiqueta_automatico.php &>/dev/null
+*/5 * * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/Magalu/atualiza_estoque.php &>/dev/null
 */2 * * * * /usr/bin/curl --silent https://goolhub.io/Magalu/atualiza_preco.php &>/dev/null
-*/5 * * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Magalu/importa_preco.php &>/dev/null
-*/10 * * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Magalu/importa_pedidos.php?status=Processing &>/dev/null
-*/15 * * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Magalu/importa_pedidos.php?status=Invoiced &>/dev/null
-*/20 * * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Magalu/importa_pedidos.php?status=Shipped &>/dev/null
-*/30 * * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Magalu/importa_pedidos.php?status=Canceled &>/dev/null
-*/30 * * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Magalu/importa_pedidos.php?status=Delivered &>/dev/null
+*/5 * * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/Magalu/importa_preco.php &>/dev/null
+*/10 * * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/Magalu/importa_pedidos.php?status=Processing &>/dev/null
+*/15 * * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/Magalu/importa_pedidos.php?status=Invoiced &>/dev/null
+*/20 * * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/Magalu/importa_pedidos.php?status=Shipped &>/dev/null
+*/30 * * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/Magalu/importa_pedidos.php?status=Canceled &>/dev/null
+*/30 * * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/Magalu/importa_pedidos.php?status=Delivered &>/dev/null
 
 #B2W
 */5 * * * * /usr/bin/curl --silent https://goolhub.io/B2W/atualiza_estoque.php &>/dev/null
 */2 * * * * /usr/bin/curl --silent https://goolhub.io/B2W/atualiza_preco.php &>/dev/null
-*/5 * * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/B2w/get_etiquetas.php &>/dev/null
-59 * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/B2W/get_order_status.php &>/dev/null
-*/5 * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/B2W/envia_nota.php &>/dev/null
-5 4 * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/B2W/pega-produtos.php &>/dev/null
-45 * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/B2W/get_order.php &>/dev/null
+*/5 * * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/B2w/get_etiquetas.php &>/dev/null
+59 * * * * /usr/bin/curl --silent https://goolhub.io/B2W/get_order_status.php &>/dev/null
+*/5 * * * * /usr/bin/curl --silent https://goolhub.io/B2W/envia_nota.php &>/dev/null
+5 4 * * * /usr/bin/curl --silent https://goolhub.io/B2W/pega-produtos.php &>/dev/null
+45 * * * * /usr/bin/curl --silent https://goolhub.io/B2W/get_order.php &>/dev/null
 
 #White label
-45 1 * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/v3/gera_cache_white.php &>/dev/null
+45 1 * * * /usr/bin/curl --silent https://goolhub.io/v3/gera_cache_white.php &>/dev/null
 
 #Msg Whats
-#1 */2 * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/SendWhatsapp/env_ruan.php &>/dev/null
+#1 */2 * * * /usr/bin/curl --silent https://goolhub.io/SendWhatsapp/env_ruan.php &>/dev/null
 
 
 #Autobot
-##* * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/auto_cad_produto_v2_superfast.php &>/dev/null
-#*/3 * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/auto_cad_produto_goia.php &>/dev/null
-#3 3 * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/auto_cad_produto_20.php &>/dev/null
+##* * * * * /usr/bin/curl --silent https://goolhub.io/auto_cad_produto_v2_superfast.php &>/dev/null
+#*/3 * * * * /usr/bin/curl --silent https://goolhub.io/auto_cad_produto_goia.php &>/dev/null
+#3 3 * * * /usr/bin/curl --silent https://goolhub.io/auto_cad_produto_20.php &>/dev/null
 
 #Amazon
-*/30 * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/ByBling/Amazon/get.pedidos.php &>/dev/null
-*/2 * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/ByBling/Amazon/get.pedidos-conta.php &>/dev/null
+*/30 * * * * /usr/bin/curl --silent https://goolhub.io/ByBling/Amazon/get.pedidos.php &>/dev/null
+*/2 * * * * /usr/bin/curl --silent https://goolhub.io/ByBling/Amazon/get.pedidos-conta.php &>/dev/null
 # executado 1x ao dia somente para manter a integração ativa (amazon exige uma interação nos ultimos 60 dias para não desativar a integração)
-2 3 * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/Amazon/interacoes_app_amazon.php &>/dev/null
+2 3 * * * /usr/bin/curl --silent https://goolhub.io/Amazon/interacoes_app_amazon.php &>/dev/null
 
 #hubla
 */3 * * * * /usr/bin/curl --silent https://goolhub.io/Hubla/cria_conta.php &>/dev/null
@@ -159,22 +159,22 @@
 */5 * * * * /usr/bin/curl --silent https://goolhub.io/Hubla/upgrade_anual/upgrade_conta.php &>/dev/null
 
 #Appmax
-*/5 * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/appmax/processa.php &>/dev/null
-*/5 * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/appmax/processa-full.php &>/dev/null
-*/20 * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/apptmb/processa.php &>/dev/null
+*/5 * * * * /usr/bin/curl --silent https://goolhub.io/appmax/processa.php &>/dev/null
+*/5 * * * * /usr/bin/curl --silent https://goolhub.io/appmax/processa-full.php &>/dev/null
+*/20 * * * * /usr/bin/curl --silent https://goolhub.io/apptmb/processa.php &>/dev/null
 
 #Asaas
-*/3 * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/asass/cria_conta.php &>/dev/null
+*/3 * * * * /usr/bin/curl --silent https://goolhub.io/asass/cria_conta.php &>/dev/null
 
 #Perfetctpay
-*/3 * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/Perfectpay/cria_conta.php &>/dev/null
+*/3 * * * * /usr/bin/curl --silent https://goolhub.io/Perfectpay/cria_conta.php &>/dev/null
 
 #KIWIFY IA
-#*/5 * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/Kiwify/cria_conta_ia.php &>/dev/null
-#*/5 * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/Kiwify/cria_conta_mensalidade.php &>/dev/null
-#*/5 * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/Kiwify/cria_conta_mensalidade_bios.php &>/dev/null
-#*/5 * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/Kiwify/cria_conta_mensalidade_vini.php &>/dev/null
-#*/5 * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/Kiwify/cria_conta_mensalidade_ia_hub_market.php &>/dev/null
+#*/5 * * * * /usr/bin/curl --silent https://goolhub.io/Kiwify/cria_conta_ia.php &>/dev/null
+#*/5 * * * * /usr/bin/curl --silent https://goolhub.io/Kiwify/cria_conta_mensalidade.php &>/dev/null
+#*/5 * * * * /usr/bin/curl --silent https://goolhub.io/Kiwify/cria_conta_mensalidade_bios.php &>/dev/null
+#*/5 * * * * /usr/bin/curl --silent https://goolhub.io/Kiwify/cria_conta_mensalidade_vini.php &>/dev/null
+#*/5 * * * * /usr/bin/curl --silent https://goolhub.io/Kiwify/cria_conta_mensalidade_ia_hub_market.php &>/dev/null
 #*/5 * * * * /usr/bin/curl --silent https://goolhub.io/Kiwify/cria_conta_mensalidade_plano.php &>/dev/null
 
 #KIWIFY
@@ -182,16 +182,16 @@
 */15 * * * * /usr/bin/curl --silent https://goolhub.io/Kiwify/bloquear_conta.php &>/dev/null
 
 #Eduzz
-*/5 * * * * /usr/bin/curl --silent https://www.sistemagrupoonline.com.br/Eduzz/cria_conta.php &>/dev/null
+*/5 * * * * /usr/bin/curl --silent https://goolhub.io/Eduzz/cria_conta.php &>/dev/null
 
 #TMB
 */5 * * * * /usr/bin/curl --silent https://goolhub.io/integracao/tmb/cria_conta.php &>/dev/null
 
 #Via
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/ViaVarejo/atualiza_estoque.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/ViaVarejo/atualiza_estoque.php &>/dev/null
 */2 * * * *  /usr/bin/curl --silent https://goolhub.io/ViaVarejo/atualiza_preco.php &>/dev/null
-*/20 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/ViaVarejo/get-pedidos-invoiced.php &>/dev/null
-*/30 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/ViaVarejo/get-pedidos.php &>/dev/null
+*/20 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/ViaVarejo/get-pedidos-invoiced.php &>/dev/null
+*/30 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/ViaVarejo/get-pedidos.php &>/dev/null
 
 #Shopify
 */5 * * * * /usr/bin/curl --silent https://goolhub.io/Shopify/v2/atualiza_estoque.php &>/dev/null
@@ -199,40 +199,40 @@
 
 
 #Shipay
-10 */3 * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Shipay/access_token.php?plano=1 &>/dev/null
+10 */3 * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Shipay/access_token.php?plano=1 &>/dev/null
 */10 * * * * /usr/bin/curl --silent https://goolhub.io/Shipay/ajusta_callback.php &>/dev/null
 */5 * * * * /usr/bin/curl --silent https://goolhub.io/Shipay/cria_conta.php &>/dev/null
 
 
 #Sistema
-#* * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send.php &>/dev/null
+#* * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send.php &>/dev/null
 */3 * * * * /usr/bin/flock -n /tmp/sistema_processa_fila_free.lock -c "/usr/bin/curl --silent https://goolhub.io/asaas/cria_conta.php &>/dev/null"
 * * * * * /usr/bin/curl --silent https://goolhub.io/Sistema/jobs/whatsapp/processa_fila.php &>/dev/null
 */3 * * * * /usr/bin/flock -n /tmp/sistema_processa_fila_free.lock -c "/usr/bin/curl --silent https://goolhub.io/Sistema/jobs/whatsapp/processa_fila_free.php &>/dev/null"
 */5 * * * * /usr/bin/curl --silent https://goolhub.io/Sistema/jobs/whatsapp/processa_fila_recuperar_carrinho.php &>/dev/null
 */5 * * * * /usr/bin/curl --silent https://goolhub.io/Sistema/jobs/whatsapp/processa_checkout.php &>/dev/null
-*/10 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Sistema/pagar-pedidos-automatico.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Sistema/sac-fila-reset.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Sistema/ajuste_estoque_geral.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Sistema/ajuste_prod_semintegracao.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Sistema/enviar_notificacoes_sem_estoque.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Sistema/enviar_notificacoes.php &>/dev/null
-* * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Sistema/fila_att_porc.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Sistema/gera_cache.php &>/dev/null
-*/2 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Sistema/valida_pedido_estoque_zerado.php &>/dev/null
-*/10 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Sistema/remove_workers.php &>/dev/null
-5 3 * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Sistema/reset_cod_coleta.php &>/dev/null
+*/10 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Sistema/pagar-pedidos-automatico.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Sistema/sac-fila-reset.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Sistema/ajuste_estoque_geral.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Sistema/ajuste_prod_semintegracao.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Sistema/enviar_notificacoes_sem_estoque.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Sistema/enviar_notificacoes.php &>/dev/null
+* * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Sistema/fila_att_porc.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Sistema/gera_cache.php &>/dev/null
+*/2 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Sistema/valida_pedido_estoque_zerado.php &>/dev/null
+*/10 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Sistema/remove_workers.php &>/dev/null
+5 3 * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/Sistema/reset_cod_coleta.php &>/dev/null
 10 */4 * * * /usr/bin/curl --silent https://sistemagrupoonline.com.br/impulsionar_auto.php &>/dev/null
 0 5 * * THU /usr/bin/curl --silent https://sistemagrupoonline.com.br/Sistema/jobs/gerar_fatura_loja.php &>/dev/null
 */15 * * * * /usr/bin/php -f /var/www/html/tudoonline-workers-production/crons/Sistema/att_sku_lucro.php &>/dev/null
-#*/2 * * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Sistema/processa_fila_campanha_bios_cad_prod.php &>/dev/null
+#*/2 * * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/Sistema/processa_fila_campanha_bios_cad_prod.php &>/dev/null
 */2 * * * * /usr/bin/curl --silent https://goolhub.io/Bling/processa_callback_estoque.php &>/dev/null
-*/5 * * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Sistema/att_custo_dia.php &>/dev/null
+*/5 * * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/Sistema/att_custo_dia.php &>/dev/null
 
-##*/5 * * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Sistema/processa_api_stock_price_fila.php &>/dev/null
-*/5 * * * *  /usr/bin/flock -n /tmp/processa_api_stock_price_fila.lock -c "/usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Sistema/processa_api_stock_price_fila.php &>/dev/null"
+##*/5 * * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/Sistema/processa_api_stock_price_fila.php &>/dev/null
+*/5 * * * *  /usr/bin/flock -n /tmp/processa_api_stock_price_fila.lock -c "/usr/bin/curl --silent http://127.0.0.1:30081/crons/Sistema/processa_api_stock_price_fila.php &>/dev/null"
 
-0 4 * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Sistema/limpar_fila_estoque.php &>/dev/null
+0 4 * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Sistema/limpar_fila_estoque.php &>/dev/null
 13 5 * * *  /usr/bin/curl --silent https://sistemagrupoonline.com.br/Sistema/jobs/top30.php &>/dev/null
 */2 * * * * /usr/bin/curl --silent https://goolhub.io/Sistema/jobs/processa_fila_produtos_fornecedor.php &>/dev/null
 */30 * * * * /usr/bin/curl --silent https://goolhub.io/Sistema/jobs/gerar_fatura_taxa_loja.php &>/dev/null
@@ -244,7 +244,7 @@
 */5 * * * * /usr/bin/curl --silent https://goolhub.io/Sistema/jobs/shipay/check_deposito_saldo.php &>/dev/null
 */5 * * * * /usr/bin/curl --silent https://goolhub.io/Sistema/jobs/shipay/check_deposito_taxa_fatura.php &>/dev/null
 */30 * * * * /usr/bin/curl --silent https://goolhub.io/Sistema/jobs/valida_pedido_conta_corrente_pendente.php &>/dev/null
-0 8 */10 * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Sistema/remove_workers_secundarios.php &>/dev/null
+0 8 */10 * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Sistema/remove_workers_secundarios.php &>/dev/null
 */5 * * * * /usr/bin/curl --silent https://goolhub.io/Sistema/jobs/remove_produto_excluido.php &>/dev/null
 */5 * * * * /usr/bin/curl --silent https://goolhub.io/Sistema/jobs/shipay/check_pagamento_pedidos.php &>/dev/null
 */5 * * * * /usr/bin/curl --silent https://goolhub.io/Sistema/jobs/shipay/check_deposito.php &>/dev/null
@@ -261,11 +261,11 @@
 
 #executa-cron
 * * * * * /usr/bin/curl --silent https://goolhub.io/cron.php &>/dev/null
-* * * * * /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send.php &>/dev/null
+* * * * * /usr/bin/curl --silent http://127.0.0.1:30081/crons/send.php &>/dev/null
 
 #Kit
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Sistema/att_preco_kit.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/Sistema/att_estoque_kit.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Sistema/att_preco_kit.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/Sistema/att_estoque_kit.php &>/dev/null
 
 #desativar quando terminar de processar
 #* * * * *  /usr/bin/curl --silent https://goolhub.io/Sistema/esporadico/enviar_convite_fornecedor.php &>/dev/null
@@ -294,28 +294,28 @@
 #*/5 * * * * /usr/bin/curl --silent https://goolhub.io/v3/ENotas/emitir_nota_automatico.php &>/dev/null
 
 #WORKERS
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-cad-prod-ia.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-att-preco-estoque-shopify.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-att-preco-estoque-bling-v3.php &>/dev/null
-*/2 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-att-preco-estoque-magalu.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-att-preco-estoque-b2w.php &>/dev/null
-*/2 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-att-preco-estoque-shopee.php &>/dev/null
-*/2 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-att-preco-estoque-meli.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-att-preco-estoque-via.php &>/dev/null
-*/2 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-get-order-meli.php &>/dev/null
-*/2 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-controle-estoque.php &>/dev/null
-*/2 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-get-orders-magalu-all.php &>/dev/null
-*/2 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-get-pedidos-shopee-v2.php &>/dev/null
-*/2 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-get-etiquetas-meli.php &>/dev/null
-*/2 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-remove-produto-excluido.php &>/dev/null
-*/2 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-executa-cron.php &>/dev/null
-*/2 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-whatsapp-notifications.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-video-busca.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-att-preco-frete.php &>/dev/null
-*/2 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-cad-video-shopee.php &>/dev/null
-*/2 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-get-etiquetas-bling.php &>/dev/null
-*/2 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-check-status-pending-meli.php &>/dev/null
-*/2 * * * *  /usr/bin/curl --silent http://workers-prod2.sistemagrupoonline.com.br/crons/send-api-stock-price-fila.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-cad-prod-ia.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-att-preco-estoque-shopify.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-att-preco-estoque-bling-v3.php &>/dev/null
+*/2 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-att-preco-estoque-magalu.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-att-preco-estoque-b2w.php &>/dev/null
+*/2 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-att-preco-estoque-shopee.php &>/dev/null
+*/2 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-att-preco-estoque-meli.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-att-preco-estoque-via.php &>/dev/null
+*/2 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-get-order-meli.php &>/dev/null
+*/2 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-controle-estoque.php &>/dev/null
+*/2 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-get-orders-magalu-all.php &>/dev/null
+*/2 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-get-pedidos-shopee-v2.php &>/dev/null
+*/2 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-get-etiquetas-meli.php &>/dev/null
+*/2 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-remove-produto-excluido.php &>/dev/null
+*/2 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-executa-cron.php &>/dev/null
+*/2 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-whatsapp-notifications.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-video-busca.php &>/dev/null
+*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-att-preco-frete.php &>/dev/null
+*/2 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-cad-video-shopee.php &>/dev/null
+*/2 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-get-etiquetas-bling.php &>/dev/null
+*/2 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-check-status-pending-meli.php &>/dev/null
+*/2 * * * *  /usr/bin/curl --silent http://127.0.0.1:30081/crons/send-api-stock-price-fila.php &>/dev/null
 
 
 # alti pagamentos

@@ -70,6 +70,9 @@ spec:
         - name: app-config
           mountPath: /app/crons/config_cron.php
           subPath: config_cron.php
+        - name: app-config
+          mountPath: /app/crons/config_rbt.php
+          subPath: config_rbt.php
         {{- range .persistence }}
         - name: {{ .name }}
           mountPath: {{ .mountPath }}
@@ -82,6 +85,9 @@ spec:
         - name: app-config
           mountPath: /app/crons/config_cron.php
           subPath: config_cron.php
+        - name: app-config
+          mountPath: /app/crons/config_rbt.php
+          subPath: config_rbt.php
         {{- end }}
       {{- if .persistence }}
       volumes:

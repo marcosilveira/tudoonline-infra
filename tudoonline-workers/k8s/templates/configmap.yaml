@@ -8,3 +8,5 @@ data:
 {{ .Files.Get "config/config.php" | indent 4 }}
   config_cron.php: |-
 {{ .Files.Get "config/config_cron.php" | indent 4 }}
+  config_rbt.php: |-
+{{ .Files.Get "config/config_rbt.php" | indent 4 }}

@@ -68,6 +68,9 @@ spec:
           mountPath: /app/config.php
           subPath: config.php
         - name: app-config
+          mountPath: /app/config_rabbit.php
+          subPath: config_rabbit.php
+        - name: app-config
           mountPath: /app/crons/config_cron.php
           subPath: config_cron.php
         - name: app-config
@@ -82,6 +85,9 @@ spec:
         - name: app-config
           mountPath: /app/config.php
           subPath: config.php
+        - name: app-config
+          mountPath: /app/config_rabbit.php
+          subPath: config_rabbit.php
         - name: app-config
           mountPath: /app/crons/config_cron.php
           subPath: config_cron.php

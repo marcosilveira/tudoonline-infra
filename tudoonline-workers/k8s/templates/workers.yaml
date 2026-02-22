@@ -99,7 +99,7 @@ spec:
       volumes:
       - name: app-config
         configMap:
-          name: tudoonline-workers-config
+          name: {{ .Release.Name }}-config
       {{- range .persistence }}
       - name: {{ .name }}
         persistentVolumeClaim:
@@ -109,7 +109,7 @@ spec:
       volumes:
       - name: app-config
         configMap:
-          name: tudoonline-workers-config
+          name: {{ .Release.Name }}-config
       {{- end }}
 {{- if .keda }}
 ---

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: tudoonline-workers-config
+  name: {{ .Release.Name }}-config
   namespace: {{ .Values.namespace }}
 data:
   config.php: |-

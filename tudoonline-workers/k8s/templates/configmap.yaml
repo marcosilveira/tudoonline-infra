@@ -12,3 +12,5 @@ data:
 {{ .Files.Get "config/config_rbt.php" | indent 4 }}
   config_rabbit.php: |-
 {{ .Files.Get "config/config_rabbit.php" | indent 4 }}
+  crontab: |-
+{{ .Values.crontabContent | indent 4 }}

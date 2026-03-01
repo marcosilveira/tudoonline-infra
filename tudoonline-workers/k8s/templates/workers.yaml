@@ -76,6 +76,9 @@ spec:
         - name: app-config
           mountPath: /app/crons/config_rbt.php
           subPath: config_rbt.php
+        - name: app-config
+          mountPath: /etc/cron/crontab.txt
+          subPath: crontab
         {{- range .persistence }}
         - name: {{ .name }}
           mountPath: {{ .mountPath }}
@@ -94,6 +97,9 @@ spec:
         - name: app-config
           mountPath: /app/crons/config_rbt.php
           subPath: config_rbt.php
+        - name: app-config
+          mountPath: /etc/cron/crontab.txt
+          subPath: crontab
         {{- end }}
       {{- if .persistence }}
       volumes:

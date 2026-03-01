@@ -96,10 +96,11 @@ pipeline {
             sed -i 's|image:.*|image: ${DOCKER_REGISTRY}/${GITHUB_ORG}/${APP_NAME}:${BUILD_NUMBER}|g' ${HELM_CHART_PATH}/helm-values-production.yaml
             
             # Deploy with Helm
-            helm upgrade --install tudoonline-workers \
-              --namespace ${NAMESPACE} \
-              -f ${HELM_CHART_PATH}/helm-values-production.yaml \
-              ${HELM_CHART_PATH} \
+            helm upgrade --install tudoonline-workers \\
+              --namespace ${NAMESPACE} \\
+              -f ${HELM_CHART_PATH}/helm-values-production.yaml \\
+              --set-file crontabContent=./tudoonline-workers/crontab.txt \\
+              ${HELM_CHART_PATH} \\
               --wait --timeout ${HELM_TIMEOUT} --atomic
           """
         }

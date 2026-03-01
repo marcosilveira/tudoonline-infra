@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: jenkins
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jenkins-pvc
+  namespace: jenkins
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jenkins-docker-install
+  namespace: jenkins
+data:
+  install-docker.sh: |
+    #!/bin/bash
+    if ! command -v docker &> /dev/null; then
+      curl -fsSL https://get.docker.com -o get-docker.sh
+      sh get-docker.sh
+      usermod -aG docker jenkins
+    fi
+    if ! command -v git-crypt &> /dev/null; then
+      apt-get update && apt-get install -y git-crypt
+    fi
+    if ! command -v kubectl &> /dev/null; then
+      curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      chmod +x kubectl && mv kubectl /usr/local/bin/
+    fi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins
+  namespace: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins
+  template:
+    metadata:
+      labels:
+        app: jenkins
+    spec:
+      nodeSelector:
+        svc.tudoonline.io/role: app
+      dnsPolicy: "None"
+      dnsConfig:
+        nameservers:
+          - 8.8.8.8
+          - 1.1.1.1
+      containers:
+      - name: jenkins
+        image: jenkins/jenkins:lts
+        securityContext:
+          runAsUser: 0
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 50000
+          name: agent
+        volumeMounts:
+        - name: jenkins-home
+          mountPath: /var/jenkins_home
+        - name: docker-sock
+          mountPath: /var/run/docker.sock
+        - name: install-script
+          mountPath: /docker-install.sh
+          subPath: install-docker.sh
+        env:
+        - name: JAVA_OPTS
+          value: "-Xmx1024m"
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/bash", "/docker-install.sh"]
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "3Gi"
+            cpu: "2000m"
+      volumes:
+      - name: jenkins-home
+        persistentVolumeClaim:
+          claimName: jenkins-pvc
+      - name: docker-sock
+        hostPath:
+          path: /var/run/docker.sock
+      - name: install-script
+        configMap:
+          name: jenkins-docker-install
+          defaultMode: 0755
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins
+  namespace: jenkins
+spec:
+  type: ClusterIP
+  clusterIP: 10.43.127.181
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+  - port: 50000
+    targetPort: 50000
+    name: agent
+  selector:
+    app: jenkins

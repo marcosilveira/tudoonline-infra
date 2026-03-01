@@ -13,7 +13,7 @@ fi
 ERRORS=0
 for HOST in $HOSTS; do
   STATUS=$(curl -L -s -o /dev/null -w '%{http_code}' "http://${HOST}/healthz" || true)
-  if [ "$STATUS" -ne 200 ]; then
+  if [ "$STATUS" -ne 200 ] && [ "$STATUS" -ne 308 ]; then
     echo "### WARNING: ${HOST} returned HTTP ${STATUS} — DNS may not be propagated yet or CNAME not set ###"
     ERRORS=$((ERRORS + 1))
   else

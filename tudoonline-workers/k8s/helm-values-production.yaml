@@ -165,15 +165,15 @@ worker:
     #      requests:
     #        cpu: 10m
     #        memory: 16Mi
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-            - matchExpressions:
-                - key: environment
-                  operator: In
-                  values:
-                    - workers-production
+    #affinity:
+    #  nodeAffinity:
+    #    requiredDuringSchedulingIgnoredDuringExecution:
+    #      nodeSelectorTerms:
+    #        - matchExpressions:
+    #            - key: environment
+    #              operator: In
+    #              values:
+    #                - workers-production
     schedulerName: bin-packing-scheduler
     enableNetworkPolicy: false
     podAnnotations:

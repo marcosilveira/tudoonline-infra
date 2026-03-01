@@ -174,7 +174,7 @@ worker:
     #              operator: In
     #              values:
     #                - workers-production
-    schedulerName: bin-packing-scheduler
+    #schedulerName: bin-packing-scheduler  # Removido para usar o default do K3S
     enableNetworkPolicy: false
     podAnnotations:
       fluentbit.io/exclude: "true"

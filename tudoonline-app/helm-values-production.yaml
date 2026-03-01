@@ -244,7 +244,7 @@ configs:
         disable_functions='phpinfo, show_source, shell_exec, system, passthru, popen'
         error_reporting='E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_NOTICE'
         session.save_handler=redis
-        session.save_path='tcp://tudoonline-production.gwewco.ng.0001.use1.cache.amazonaws.com:6379'
+        session.save_path='tcp://redis-master.production.svc.cluster.local:6379?auth=redis_prod_password'
         session.gc_maxlifetime=86400
         opcache.blacklist_filename=/etc/php.d/opcache*.blacklist
         opcache.enable=1

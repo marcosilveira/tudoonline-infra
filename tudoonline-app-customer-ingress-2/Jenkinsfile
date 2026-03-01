@@ -1,0 +1,101 @@
+#!/usr/bin/env groovy
+// ============================================================
+// Trigger via curl (configurar "Trigger builds remotely" na
+// interface do Jenkins com o token desejado):
+//
+// curl -X POST --user USER:API_TOKEN \
+//   "https://SEU-JENKINS/job/tudoonline-customer-ingress/buildWithParameters?token=SEU-TOKEN"
+// ============================================================
+pipeline {
+  environment {
+    KUBERNETES_SERVER_URL = "https://kubernetes.default"
+    KUBERNETES_CREDENTIAL_ID = "jenkins-production"
+    NAMESPACE = "production"
+    URL_HOSTS = "https://goolhub.io/Sistema/customer-ingress/hosts.php"
+    INGRESS_NAME = "tudoonline-app-customer-ingress"
+    SERVICE_NAME = "tudoonline-app"
+    SERVICE_PORT = "80"
+  }
+
+  options {
+    timeout(time: 30, unit: 'MINUTES')
+    disableConcurrentBuilds()
+  }
+
+  agent {
+    kubernetes {
+      inheritFrom 'jenkins-slave-docker-build'
+      defaultContainer 'k8s-jenkins-toolbox'
+    }
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Initialize') {
+      steps {
+        sh """
+          apk add -q --no-cache jq curl bind-tools
+        """
+      }
+    }
+
+    stage('Get domain list') {
+      steps {
+        sh """
+          echo "### Fetching customer host list from API ###"
+          curl --silent --show-error --fail \\
+            -H "Content-Type: application/json" \\
+            ${URL_HOSTS} > hosts-raw.json
+
+          echo "### Response from API: ###"
+          cat hosts-raw.json
+
+          echo "### Generating ingress YAML ###"
+          bash generate-ingress.sh > ingress-production.yaml
+
+          echo "### Generated ingress YAML: ###"
+          cat ingress-production.yaml
+        """
+      }
+    }
+
+    stage('Check DNS') {
+      steps {
+        sh "bash check-dns.sh"
+      }
+    }
+
+    stage('Deploy') {
+      steps {
+        withKubeConfig([credentialsId: "${KUBERNETES_CREDENTIAL_ID}", serverUrl: "${KUBERNETES_SERVER_URL}"]) {
+          sh """
+            echo "### Applying customer ingress to cluster ###"
+            kubectl apply -f ingress-production.yaml -n ${NAMESPACE}
+
+            echo ""
+            echo "### Current ingress state: ###"
+            kubectl get ingress -n ${NAMESPACE} ${INGRESS_NAME}
+
+            echo ""
+            echo "### Certificate status: ###"
+            kubectl get certificate -n ${NAMESPACE}
+          """
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "### Customer ingress deployed successfully! Certificates will be issued automatically by cert-manager. ###"
+    }
+    failure {
+      echo "### Deployment FAILED! Check the logs above. ###"
+    }
+  }
+}

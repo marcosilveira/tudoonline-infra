@@ -91,7 +91,7 @@ pipeline {
                 --namespace production \
                 --values ./tudoonline-workers/k8s/helm-values-prod2.yaml \
                 --set-file crontabContent=./tudoonline-workers/crontab.txt \
-                --set worker.image=${DOCKER_IMAGE}:prod2-${BUILD_NUMBER}
+                --set worker.defaults.image=${DOCKER_IMAGE}:prod2-${BUILD_NUMBER}
             """
         }
       }

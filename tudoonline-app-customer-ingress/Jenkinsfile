@@ -1,15 +1,60 @@
 #!/usr/bin/env groovy
 // ============================================================
-// Trigger via curl (configurar "Trigger builds remotely" na
-// interface do Jenkins com o token desejado):
+// Trigger via curl:
 //
-// curl -X POST --user USER:API_TOKEN \
-//   "https://SEU-JENKINS/job/tudoonline-customer-ingress/buildWithParameters?token=SEU-TOKEN"
+// curl -X POST --user marco_silveira:API_TOKEN \
+//   "http://217.216.81.157:30808/job/Projects/job/tudoonline/job/customer-ingress/job/Deploy%20-%20Customer%20Ingress/build?token=3UodgmPPfWK187PY5UaLFNYd0FcJmvvO"
+//
+// Nota: substituir API_TOKEN pelo token gerado em Jenkins > Avatar > Security > API Token
 // ============================================================
 pipeline {
+  agent {
+    kubernetes {
+      yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    jenkins: slave
+spec:
+  containers:
+  - name: jnlp
+    image: jenkins/inbound-agent:latest
+    volumeMounts:
+    - name: workspace-volume
+      mountPath: /home/jenkins/agent
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+  - name: kubectl
+    image: alpine:3.18
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - name: workspace-volume
+      mountPath: /home/jenkins/agent
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
+  volumes:
+  - name: workspace-volume
+    emptyDir:
+      medium: Memory
+      sizeLimit: 512Mi
+"""
+    }
+  }
+
   environment {
-    KUBERNETES_SERVER_URL = "https://kubernetes.default"
-    KUBERNETES_CREDENTIAL_ID = "jenkins-production"
     NAMESPACE = "production"
     URL_HOSTS = "https://goolhub.io/Sistema/customer-ingress/hosts.php"
     INGRESS_NAME = "tudoonline-app-customer-ingress"
@@ -22,57 +67,65 @@ pipeline {
     disableConcurrentBuilds()
   }
 
-  agent {
-    kubernetes {
-      inheritFrom 'jenkins-slave-docker-build'
-      defaultContainer 'k8s-jenkins-toolbox'
-    }
-  }
-
   stages {
     stage('Checkout') {
       steps {
-        checkout scm
+        container('jnlp') {
+          checkout scm
+        }
       }
     }
 
     stage('Initialize') {
       steps {
-        sh """
-          apk add -q --no-cache jq curl bind-tools
-        """
+        container('kubectl') {
+          sh """
+            echo "### Installing dependencies ###"
+            apk add -q --no-cache jq curl bind-tools
+
+            echo "### Installing kubectl ###"
+            curl -LO "https://dl.k8s.io/release/\$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            chmod +x kubectl
+            mv kubectl /usr/local/bin/
+            kubectl version --client
+          """
+        }
       }
     }
 
     stage('Get domain list') {
       steps {
-        sh """
-          echo "### Fetching customer host list from API ###"
-          curl --silent --show-error --fail \\
-            -H "Content-Type: application/json" \\
-            ${URL_HOSTS} > hosts-raw.json
+        container('kubectl') {
+          sh """
+            echo "### Fetching customer host list from API ###"
+            curl --silent --show-error --fail \\
+              -H "Content-Type: application/json" \\
+              ${URL_HOSTS} > hosts-raw.json
 
-          echo "### Response from API: ###"
-          cat hosts-raw.json
+            echo "### Response from API: ###"
+            cat hosts-raw.json
 
-          echo "### Generating ingress YAML ###"
-          bash generate-ingress.sh > ingress-production.yaml
+            echo "### Generating ingress YAML ###"
+            bash tudoonline-app-customer-ingress/generate-ingress.sh > ingress-production.yaml
 
-          echo "### Generated ingress YAML: ###"
-          cat ingress-production.yaml
-        """
+            echo "### Generated ingress YAML: ###"
+            cat ingress-production.yaml
+          """
+        }
       }
     }
 
     stage('Check DNS') {
       steps {
-        sh "bash check-dns.sh"
+        container('kubectl') {
+          sh "bash tudoonline-app-customer-ingress/check-dns.sh"
+        }
       }
     }
 
     stage('Deploy') {
       steps {
-        withKubeConfig([credentialsId: "${KUBERNETES_CREDENTIAL_ID}", serverUrl: "${KUBERNETES_SERVER_URL}"]) {
+        container('kubectl') {
           sh """
             echo "### Applying customer ingress to cluster ###"
             kubectl apply -f ingress-production.yaml -n ${NAMESPACE}

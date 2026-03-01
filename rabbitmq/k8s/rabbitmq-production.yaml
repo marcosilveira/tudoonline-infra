@@ -1,0 +1,169 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-definitions
+  namespace: production
+data:
+  # rabbitmq.conf: instrui o RabbitMQ a carregar as definições automaticamente no startup
+  rabbitmq.conf: |
+    management.load_definitions = /etc/rabbitmq/definitions.json
+  # definitions.json: vhosts, permissões e queues pré-configuradas
+  definitions.json: |
+    {
+      "vhosts": [
+        { "name": "/" },
+        { "name": "production" }
+      ],
+      "users": [],
+      "permissions": [
+        {
+          "user": "admin",
+          "vhost": "/",
+          "configure": ".*",
+          "write": ".*",
+          "read": ".*"
+        },
+        {
+          "user": "admin",
+          "vhost": "production",
+          "configure": ".*",
+          "write": ".*",
+          "read": ".*"
+        }
+      ],
+      "queues": [
+        {"name":"api-stock-price-fila","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"att-img","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"att-preco-estoque-b2w","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"att-preco-estoque-bling-v3","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"att-preco-estoque-magalu","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"att-preco-estoque-meli","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"att-preco-estoque-shopee","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"att-preco-estoque-shopify","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"att-preco-estoque-via","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"att-preco-frete","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"att-token-bling-v3","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"att-token-magalu","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"att-token-meli","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"att-token-shopee","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"cad-prod-b2w-ia","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"cad-prod-bling-ia","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"cad-prod-magalu-ia","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"cad-prod-meli-ia","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"cad-prod-shopee-ia","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"cad-video-shopee","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"check-status-pending-meli","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"controle-estoque","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"executa-cron","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-etiquetas-b2w","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-etiquetas-bling","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-etiquetas-magalu","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-etiquetas-meli","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-etiquetas-meli-coleta","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-etiquetas-shopee","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-gambi-shopee","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-order-meli","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-order-skyhub","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-order-status-b2w","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-orders-b2w-all","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-orders-magalu-all","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-orders-shopify","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-pedidos-magalu","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-pedidos-shopee-v2","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-pedidos-shopee-v2-all","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-performance-shopee","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-prod-b2w","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-prod-b2w-fila","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-prod-magalu","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-prod-magalu-fila","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-prod-meli","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-prod-meli-item","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-prod-meli-item-import","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-prod-shopee","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"get-status-meli-order","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"insert-fila-preco","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"remove-anuncio-meli","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"remove-anuncio-shopee","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"remove-produto-excluido","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"video-busca","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}},
+        {"name":"whatsapp-notifications","vhost":"production","durable":true,"auto_delete":false,"arguments":{"x-queue-type":"classic"}}
+      ],
+      "exchanges": [],
+      "bindings": []
+    }
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rabbitmq
+  namespace: production
+spec:
+  serviceName: rabbitmq
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      nodeSelector:
+        svc.tudoonline.io/role: app
+      containers:
+      - name: rabbitmq
+        image: rabbitmq:3.13-management
+        ports:
+        - containerPort: 5672
+          name: amqp
+        - containerPort: 15672
+          name: management
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: "admin"
+        - name: RABBITMQ_DEFAULT_PASS
+          value: "adminpassword"
+        - name: RABBITMQ_ERLANG_COOKIE
+          value: "secretcookie"
+        # RABBITMQ_LOAD_DEFINITIONS não é válido — usar rabbitmq.conf montado abaixo
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/rabbitmq
+        - name: definitions
+          mountPath: /etc/rabbitmq/definitions.json
+          subPath: definitions.json
+        # Monta o rabbitmq.conf que instrui o RabbitMQ a carregar as definitions
+        - name: definitions
+          mountPath: /etc/rabbitmq/rabbitmq.conf
+          subPath: rabbitmq.conf
+      volumes:
+        - name: definitions
+          configMap:
+            name: rabbitmq-definitions
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  namespace: production
+spec:
+  type: NodePort
+  ports:
+  - port: 5672
+    targetPort: 5672
+    nodePort: 30672
+    name: amqp
+  - port: 15672
+    targetPort: 15672
+    nodePort: 30673
+    name: management
+  selector:
+    app: rabbitmq

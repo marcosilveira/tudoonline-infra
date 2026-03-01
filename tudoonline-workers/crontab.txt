@@ -29,3 +29,4 @@
 #45 * * * * /usr/bin/curl --silent https://goolhub.io/Sistema/esporadico/ajustar_cadastros_6663.php &>/dev/null
 
 
+

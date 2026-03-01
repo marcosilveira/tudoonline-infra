@@ -81,7 +81,7 @@ spec:
         container('kubectl') {
           sh """
             echo "### Installing dependencies ###"
-            apk add -q --no-cache jq curl bind-tools
+            apk add -q --no-cache jq curl bind-tools bash
 
             echo "### Installing kubectl ###"
             curl -LO "https://dl.k8s.io/release/\$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"

@@ -38,11 +38,11 @@ spec:
               name: http
           resources:
             requests:
-              cpu: 20m
-              memory: 32Mi
+              cpu: 100m
+              memory: 64Mi
             limits:
-              cpu: 40m
-              memory: 48Mi
+              cpu: 200m
+              memory: 128Mi
           lifecycle:
             preStop:
               exec:
@@ -66,11 +66,11 @@ spec:
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: 400m
-              memory: 768Mi
-            limits:
               cpu: 1000m
-              memory: 768Mi
+              memory: 1Gi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
           lifecycle:
             preStop:
               exec:

@@ -135,8 +135,8 @@ data:
     [www]
     listen=/var/run/php-fpm/php-fpm.sock
     pm=static
-    pm.max_children=30
-    pm.max_requests=500
+    pm.max_children=60
+    pm.max_requests=1000
     catch_workers_output=yes
     decorate_workers_output=no
     pm.status_path=/status

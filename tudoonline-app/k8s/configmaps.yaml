@@ -134,8 +134,9 @@ data:
     process_control_timeout=15
     [www]
     listen=/var/run/php-fpm/php-fpm.sock
+    listen.backlog=1024
     pm=static
-    pm.max_children=60
+    pm.max_children=120
     pm.max_requests=1000
     catch_workers_output=yes
     decorate_workers_output=no

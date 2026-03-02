@@ -96,7 +96,7 @@ spec:
     NAMESPACE = 'production'
     GITHUB_CREDENTIAL_ID = '7695161b-5a4b-49a9-a5a9-86c1b6f2bf1c'
     // App Repo
-    APP_REPO_URL = 'https://github.com/tudoonline/legadogool.git'
+    APP_REPO_URL = 'https://github.com/marcosilveira/legadogool.git'
     APP_BRANCH = 'master'
     GIT_CREDENTIAL_ID = '7695161b-5a4b-49a9-a5a9-86c1b6f2bf1c'
     // Secrets

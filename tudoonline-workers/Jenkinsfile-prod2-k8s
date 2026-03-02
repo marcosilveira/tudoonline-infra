@@ -15,7 +15,7 @@ pipeline {
   agent any
   environment {
     // Configurações do Repositório
-    GIT_REPO_URL = 'https://github.com/tudoonline/legadogool-workers.git'
+    GIT_REPO_URL = 'https://github.com/marcosilveira/legadogool-workers.git'
     GIT_BRANCH = 'prod2' // Branch específica
     
     // Credenciais

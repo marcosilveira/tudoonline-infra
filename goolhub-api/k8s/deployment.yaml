@@ -62,10 +62,10 @@ spec:
         - name: shared-files
           mountPath: /var/www/html
         - name: config-volume
-          mountPath: /usr/local/etc/php/php.ini
+          mountPath: /etc/php82/conf.d/99-custom.ini
           subPath: php.ini
         - name: config-volume
-          mountPath: /usr/local/etc/php-fpm.d/www.conf
+          mountPath: /etc/php82/php-fpm.d/www.conf
           subPath: php-fpm.conf
         - name: php-socket
           mountPath: /var/run/php-fpm

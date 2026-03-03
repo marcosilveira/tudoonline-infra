@@ -60,6 +60,7 @@ spec:
         - "--innodb-flush-log-at-trx-commit=2"
         - "--replica-skip-errors=1062,1032"
         - "--binlog-expire-logs-seconds=604800"
+        - "--sql-mode=NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
   volumeClaimTemplates:
   - metadata:
       name: data

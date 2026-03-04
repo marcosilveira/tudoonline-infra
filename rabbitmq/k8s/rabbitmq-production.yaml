@@ -14,7 +14,13 @@ data:
         { "name": "/" },
         { "name": "production" }
       ],
-      "users": [],
+      "users": [
+        {
+          "name": "admin",
+          "password": "adminpassword",
+          "tags": "administrator"
+        }
+      ],
       "permissions": [
         {
           "user": "admin",

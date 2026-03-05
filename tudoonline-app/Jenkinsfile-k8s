@@ -135,15 +135,11 @@ spec:
       }
     }
 
-    stage('Decrypt & Prepare') {
+    stage('Prepare Config Files') {
       steps {
         container('jnlp') {
           script {
-            // Copiar arquivo de configuração criptografado da infra para o app
-            // O Jenkins já desencriptou o repo `tudoonline-infra` no checkout inicial
-            // se a credencial git-crypt estiver configurada globalmente ou no checkout.
-            // Se não, precisamos garantir o unlock aqui, mas geralmente o checkout SCM já resolve se configurado.
-            // Para segurança, vamos garantir que o arquivo existe.
+            // Copiar arquivos de configuração da infra para o app antes do build
             
             sh """
               if [ -f "tudoonline-app/config/config.php" ]; then
@@ -151,6 +147,14 @@ spec:
                   cp tudoonline-app/config/config.php app/config.php
               else
                   echo "ERRO: tudoonline-app/config/config.php não encontrado na infra!"
+                  exit 1
+              fi
+
+              if [ -f "tudoonline-app/config/.env" ]; then
+                  echo "Copiando .env da infra..."
+                  cp tudoonline-app/config/.env app/.env
+              else
+                  echo "ERRO: tudoonline-app/config/.env não encontrado na infra!"
                   exit 1
               fi
             """

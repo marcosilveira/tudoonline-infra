@@ -199,7 +199,7 @@
 
 
 #Shipay
-10 */3 * * *  /usr/bin/curl --silent http://127.0.0.1:80/crons/Shipay/access_token.php?plano=1 &>/dev/null
+10 * * * *  /usr/bin/curl --silent http://127.0.0.1:80/crons/Shipay/access_token.php?plano=1 &>/dev/null
 */10 * * * * /usr/bin/curl --silent https://goolhub.io/Shipay/ajusta_callback.php &>/dev/null
 */5 * * * * /usr/bin/curl --silent https://goolhub.io/Shipay/cria_conta.php &>/dev/null
 

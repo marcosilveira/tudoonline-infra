@@ -76,7 +76,7 @@
 
 
 #Shopee
-5 */2 * * * /usr/bin/curl --silent http://127.0.0.1:80/crons/Shopee/envia_token.php &>/dev/null
+5 * * * * /usr/bin/curl --silent http://127.0.0.1:80/crons/Shopee/envia_token.php &>/dev/null
 5 2 * * * /usr/bin/curl --silent https://goolhub.io/Shopee/get-performance.php &>/dev/null
 */5 * * * *  /usr/bin/curl --silent http://127.0.0.1:80/crons/Shopee/fila_callback.php &>/dev/null
 0 * * * *  /usr/bin/curl --silent http://127.0.0.1:80/crons/Shopee/ajusta-etiqueta.php &>/dev/null

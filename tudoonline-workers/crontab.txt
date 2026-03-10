@@ -228,6 +228,7 @@
 #*/2 * * * * /usr/bin/curl --silent http://127.0.0.1:80/crons/Sistema/processa_fila_campanha_bios_cad_prod.php &>/dev/null
 */2 * * * * /usr/bin/curl --silent https://goolhub.io/Bling/processa_callback_estoque.php &>/dev/null
 */5 * * * * /usr/bin/curl --silent http://127.0.0.1:80/crons/Sistema/att_custo_dia.php &>/dev/null
+*/5 * * * * /usr/bin/curl --silent https://goolhub.io/Sistema/jobs/mercadopago/check_pagamentos.php &>/dev/null
 
 ##*/5 * * * * /usr/bin/curl --silent http://127.0.0.1:80/crons/Sistema/processa_api_stock_price_fila.php &>/dev/null
 */5 * * * *  /usr/bin/flock -n /tmp/processa_api_stock_price_fila.lock -c "/usr/bin/curl --silent http://127.0.0.1:80/crons/Sistema/processa_api_stock_price_fila.php &>/dev/null"

@@ -322,3 +322,15 @@
 # alti pagamentos
 */2 * * * * /usr/bin/curl --silent https://goolhub.io/alti/jobs/cria_conta_ia_integracao.php &>/dev/null
 */2 * * * * /usr/bin/curl --silent https://goolhub.io/alti/jobs/cria_conta_manual.php &>/dev/null
+
+# shopee violations
+5 * * * * /usr/bin/curl --silent https://goolhub.io/Shopee/jobs/ajusta_violations.php?plano=6663 &>/dev/null
+10 * * * * /usr/bin/curl --silent https://goolhub.io/Shopee/jobs/ajusta_violations.php?plano=6662 &>/dev/null
+15 * * * * /usr/bin/curl --silent https://goolhub.io/Shopee/jobs/ajusta_violations.php?plano=6661 &>/dev/null
+20 * * * * /usr/bin/curl --silent https://goolhub.io/Shopee/jobs/ajusta_violations.php?plano=6660 &>/dev/null
+25 * * * * /usr/bin/curl --silent https://goolhub.io/Shopee/jobs/ajusta_violations.php?plano=7662 &>/dev/null
+30 * * * * /usr/bin/curl --silent https://goolhub.io/Shopee/jobs/ajusta_violations.php?plano=7661 &>/dev/null
+35 * * * * /usr/bin/curl --silent https://goolhub.io/Shopee/jobs/ajusta_violations.php?plano=7660 &>/dev/null
+
+
+

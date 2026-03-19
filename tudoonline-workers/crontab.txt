@@ -215,8 +215,8 @@
 */5 * * * *  /usr/bin/curl --silent http://127.0.0.1:80/crons/Sistema/sac-fila-reset.php &>/dev/null
 */5 * * * *  /usr/bin/curl --silent http://127.0.0.1:80/crons/Sistema/ajuste_estoque_geral.php &>/dev/null
 */5 * * * *  /usr/bin/curl --silent http://127.0.0.1:80/crons/Sistema/ajuste_prod_semintegracao.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:80/crons/Sistema/enviar_notificacoes_sem_estoque.php &>/dev/null
-*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:80/crons/Sistema/enviar_notificacoes.php &>/dev/null
+#*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:80/crons/Sistema/enviar_notificacoes_sem_estoque.php &>/dev/null
+#*/5 * * * *  /usr/bin/curl --silent http://127.0.0.1:80/crons/Sistema/enviar_notificacoes.php &>/dev/null
 * * * * *  /usr/bin/curl --silent http://127.0.0.1:80/crons/Sistema/fila_att_porc.php &>/dev/null
 */5 * * * *  /usr/bin/curl --silent http://127.0.0.1:80/crons/Sistema/gera_cache.php &>/dev/null
 */2 * * * *  /usr/bin/curl --silent http://127.0.0.1:80/crons/Sistema/valida_pedido_estoque_zerado.php &>/dev/null

@@ -129,6 +129,8 @@ spec:
              echo "Cloning Application Code..."
              dir('app') {
                git branch: APP_BRANCH, url: APP_REPO_URL, credentialsId: GIT_CREDENTIAL_ID
+               // Remove lixo do git para reduzir a imagem de 1.1GB para ~200MB
+               sh "rm -rf .git"
              }
           }
         }
@@ -161,6 +163,10 @@ spec:
             
             // Limpeza sequencial segura antes dos builds paralelos
             sh "rm -rf app/mercadopago/vendor/mercadopago/dx-php/.phpdoc || true"
+            
+            // Garante que o .dockerignore seja lido pelo Kaniko (precisa estar na raiz .)
+            sh "cp tudoonline-app/.dockerignore .dockerignore || true"
+            
             echo "Limpeza e Configuração concluída."
           }
         }
